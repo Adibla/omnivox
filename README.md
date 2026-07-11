@@ -1,7 +1,7 @@
 <h1 align="center">OmniVox</h1>
 
 <p align="center">
-  <img src="omnivox_logo.png" alt="OmniVox logo" width="320" />
+  <img src="apps/web/public/omnivox_logo.png" alt="OmniVox logo" width="320" />
 </p>
 
 <p align="center">
@@ -87,13 +87,13 @@ Main routes:
 
 ## Local Services
 
-| Service | URL / port | Credentials |
-|---------|------------|-------------|
-| Web | `http://localhost:3000` | handled by the app |
-| Keycloak | `http://localhost:8080` | admin / admin |
+| Service       | URL / port              | Credentials             |
+| ------------- | ----------------------- | ----------------------- |
+| Web           | `http://localhost:3000` | handled by the app      |
+| Keycloak      | `http://localhost:8080` | admin / admin           |
 | MinIO console | `http://localhost:9001` | minioadmin / minioadmin |
-| Postgres | `localhost:5432` | postgres / postgres |
-| Redis | `localhost:6379` | none |
+| Postgres      | `localhost:5432`        | postgres / postgres     |
+| Redis         | `localhost:6379`        | none                    |
 
 The local MinIO bucket is `omnivox`.
 
@@ -102,9 +102,9 @@ The local MinIO bucket is `omnivox`.
 The compose stack imports the `omnivox` Keycloak realm with two demo users in the same `acme` tenant. They are useful for checking that analyses created by one user are not visible to the other.
 
 | Username | Password | Tenant |
-|----------|----------|--------|
-| `demo` | `demo` | `acme` |
-| `demo2` | `demo2` | `acme` |
+| -------- | -------- | ------ |
+| `demo`   | `demo`   | `acme` |
+| `demo2`  | `demo2`  | `acme` |
 
 If Keycloak was already started before the realm file changed, the import is not applied again automatically. Recreate the Keycloak volume or add the user manually from the admin console.
 
