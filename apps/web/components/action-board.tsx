@@ -238,10 +238,11 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
                     setDraggedId(id);
                     setSelectedId(id);
                   }}
-                  onDrop={(status) => {
-                    if (draggedId) {
-                      setStatus(draggedId, status);
-                      setSelectedId(draggedId);
+                  onDrop={(status, droppedId) => {
+                    const targetId = droppedId ?? draggedId;
+                    if (targetId) {
+                      setStatus(targetId, status);
+                      setSelectedId(targetId);
                     }
                     setDraggedId(null);
                     setDropTarget(null);

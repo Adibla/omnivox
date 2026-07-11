@@ -168,9 +168,9 @@ export function ActionLane({
   selectedId: string | null;
   syncingMap: Record<string, boolean>;
   onDragEnd: () => void;
-  onDragOver: (status: ActionStatus) => void;
+  onDragOver: (status: ActionStatus | null) => void;
   onDragStart: (id: string) => void;
-  onDrop: (status: ActionStatus) => void;
+  onDrop: (status: ActionStatus, draggedId: string | null) => void;
   onSelect: (id: string) => void;
   onStatus: (id: string, status: ActionStatus) => void;
   statusFor: (id: string) => ActionStatus;
@@ -187,10 +187,16 @@ export function ActionLane({
         event.preventDefault();
         onDragOver(lane.status);
       }}
-      onDragLeave={onDragEnd}
+      onDragLeave={(event) => {
+        // dragleave also fires when crossing into a child of the lane; only
+        // clear the highlight when the pointer actually leaves the lane.
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          onDragOver(null);
+        }
+      }}
       onDrop={(event) => {
         event.preventDefault();
-        onDrop(lane.status);
+        onDrop(lane.status, event.dataTransfer.getData("text/plain") || null);
       }}
     >
       <div className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-3">
