@@ -92,6 +92,19 @@ Check:
 - `OPENAI_BASE_URL` is correct if used
 - configured models are available
 
+If the job error is `Connection error.`, the AI provider may be rejecting the
+request while the audio is still uploading, which surfaces as a socket reset
+instead of a readable status. A quota exhaustion (`insufficient_quota`, HTTP 429) typically shows up exactly this way. Test the key with a small request:
+
+```bash
+curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | head -3
+curl -s https://api.openai.com/v1/audio/transcriptions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -F model=whisper-1 -F file=@any-small-file.mp3
+```
+
+The second call returns the real error body (e.g. `insufficient_quota`).
+
 ## 11. Suggested Debug Sequence
 
 1. `GET http://localhost:4010/health` and `.../ready`
