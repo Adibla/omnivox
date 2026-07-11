@@ -15,6 +15,7 @@ This is a working list of improvements for future releases. It is not a commitme
 
 ## Product
 
+- Transcript-only analyses: start from a pasted transcript with no audio upload (also enables a one-click sample demo).
 - Global search across transcripts, actions, decisions, and diagrams.
 - Advanced filters for analyses: owner, risk, priority, status, date range, meeting template.
 - Richer action board: assignee, comments, history, and bulk updates.
