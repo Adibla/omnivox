@@ -278,6 +278,7 @@ If the same user starts the same analysis on the same object again, the API retu
 - Rate limiting is in-memory: per instance and reset on restart; multi-replica deployments need Redis or an API gateway.
 - The `/api/v1/*` routes are same-origin by design: no CORS headers are set, so they are meant to be consumed only by the bundled web app, not by external clients.
 - The weak default `SESSION_SECRET` is rejected only when `NODE_ENV=production`. Real deployments must set `NODE_ENV=production` explicitly, otherwise the app starts with the insecure default.
+- Generated content is derived from untrusted meeting audio: a hostile transcript can steer what the model writes (prompt injection). The blast radius is contained — the model has no tools, outputs are schema-validated, rendered without raw HTML, and the CSP blocks external requests from rendered content — but briefs and actions remain suggestions to review, not facts.
 - Worker readiness is still simple; it mostly checks Postgres today.
 - A DLQ exists on the worker side, but operator tooling for inspect/replay is still missing.
 - Large files need chunking or preprocessing to go beyond the current direct upload limit.
