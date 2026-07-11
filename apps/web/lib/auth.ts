@@ -24,14 +24,6 @@ export type AppSession = {
   auth?: AuthIdentity;
 };
 
-type AppSessionCookie = {
-  tenantId: string;
-  csrfToken: string;
-  sessionId: string;
-  issuedAt: number;
-  auth?: AuthIdentity;
-};
-
 export async function ensureSessionCookie() {
   const cookieStore = await cookies();
   const existing = cookieStore.get(SESSION_COOKIE)?.value;
@@ -43,7 +35,7 @@ export async function ensureSessionCookie() {
     tenantId: getEnv().DEFAULT_TENANT_ID,
     sessionId: randomUUID(),
     csrfToken: randomUUID(),
-    issuedAt: Date.now()
+    issuedAt: Date.now(),
   };
   cookieStore.set(SESSION_COOKIE, encodeSession(session), sessionCookieOptions());
   return session;
@@ -51,7 +43,7 @@ export async function ensureSessionCookie() {
 
 export async function setAuthenticatedSession(
   identity: AuthIdentity,
-  options: { idToken: string; refreshToken?: string; refreshExpiresAt?: number }
+  options: { idToken: string; refreshToken?: string; refreshExpiresAt?: number },
 ) {
   const cookieStore = await cookies();
   const existing = cookieStore.get(SESSION_COOKIE)?.value;
@@ -63,8 +55,8 @@ export async function setAuthenticatedSession(
       identity,
       idToken: options.idToken,
       refreshToken: options.refreshToken,
-      refreshExpiresAt: options.refreshExpiresAt
-    }
+      refreshExpiresAt: options.refreshExpiresAt,
+    },
   });
   cookieStore.set(SESSION_COOKIE, encodeSession(session), sessionCookieOptions());
   return session;
@@ -99,7 +91,7 @@ export function getOwnerFromSession(session: AppSession) {
   requireAuthenticatedSession(session);
   return {
     ownerIssuer: session.auth?.issuer ?? null,
-    ownerSubject: session.auth?.subject ?? null
+    ownerSubject: session.auth?.subject ?? null,
   };
 }
 
@@ -109,7 +101,12 @@ export function resolveSessionTenantId(session: AppSession) {
 
 export function canAccessOwnedResource(
   session: AppSession,
-  resource: { ownerIssuer?: string | null; ownerSubject?: string | null; tenantId?: string | null; objectKey?: string | null }
+  resource: {
+    ownerIssuer?: string | null;
+    ownerSubject?: string | null;
+    tenantId?: string | null;
+    objectKey?: string | null;
+  },
 ) {
   const tenantId = resolveSessionTenantId(session);
   if (!isAuthRequired()) {
@@ -128,18 +125,22 @@ export function canAccessOwnedResource(
 export function createOidcState() {
   return {
     state: randomUUID(),
-    nonce: randomUUID()
+    nonce: randomUUID(),
   };
 }
 
-export async function setOidcStateCookie(value: { state: string; nonce: string; returnTo?: string }) {
+export async function setOidcStateCookie(value: {
+  state: string;
+  nonce: string;
+  returnTo?: string;
+}) {
   const cookieStore = await cookies();
   cookieStore.set(OIDC_STATE_COOKIE, encodeSigned(value), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 10 * 60
+    maxAge: 10 * 60,
   });
 }
 
@@ -159,7 +160,7 @@ export function validateCsrf(request: Request, csrfToken: string) {
 }
 
 export function decodeSession(value: string): AppSession {
-  const decoded = decodeSigned<Partial<AppSessionCookie>>(value);
+  const decoded = decodeSigned<Partial<AppSession>>(value);
   if (!decoded.tenantId || !decoded.csrfToken || !decoded.issuedAt) {
     throw new Error("Invalid session cookie payload.");
   }
@@ -167,7 +168,7 @@ export function decodeSession(value: string): AppSession {
     tenantId: decoded.tenantId,
     csrfToken: decoded.csrfToken,
     sessionId: decoded.sessionId ?? randomUUID(),
-    issuedAt: decoded.issuedAt
+    issuedAt: decoded.issuedAt,
   };
 }
 
@@ -176,8 +177,8 @@ function encodeSession(input: AppSession) {
     tenantId: input.tenantId,
     csrfToken: input.csrfToken,
     sessionId: input.sessionId,
-    issuedAt: input.issuedAt
-  } satisfies AppSessionCookie);
+    issuedAt: input.issuedAt,
+  } satisfies AppSession);
 }
 
 function encodeSigned(input: unknown) {
@@ -207,7 +208,7 @@ function sessionCookieOptions() {
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 90
+    maxAge: 60 * 60 * 24 * 90,
   };
 }
 
@@ -234,8 +235,8 @@ async function hydrateSessionAuth(session: AppSession): Promise<AppSession> {
         identity: refreshed.identity,
         idToken: refreshed.idToken,
         refreshToken: refreshed.refreshToken,
-        refreshExpiresAt: refreshed.refreshExpiresAt
-      }
+        refreshExpiresAt: refreshed.refreshExpiresAt,
+      },
     });
     return { ...session, auth: refreshed.identity };
   } catch {
