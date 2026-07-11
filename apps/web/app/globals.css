@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --background: 210 29% 97%;
+    --foreground: 224 28% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 28% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 28% 13%;
+    --primary: 221 83% 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 214 38% 92%;
+    --secondary-foreground: 222 30% 18%;
+    --muted: 214 34% 93%;
+    --muted-foreground: 218 13% 42%;
+    --accent: 202 48% 89%;
+    --accent-foreground: 221 52% 24%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 23% 84%;
+    --input: 214 23% 84%;
+    --ring: 221 83% 48%;
+    --radius: 0.5rem;
+    --success: 152 62% 34%;
+    --warning: 38 92% 43%;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --background: 220 14% 9%;
+    --foreground: 210 25% 96%;
+    --card: 220 12% 11%;
+    --card-foreground: 210 25% 96%;
+    --popover: 220 12% 10%;
+    --popover-foreground: 210 25% 96%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 220 20% 98%;
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 210 20% 92%;
+    --muted: 220 10% 16%;
+    --muted-foreground: 215 14% 64%;
+    --accent: 220 10% 20%;
+    --accent-foreground: 210 25% 96%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 210 25% 98%;
+    --border: 220 10% 19%;
+    --input: 220 10% 19%;
+    --ring: 221 83% 53%;
+    --success: 152 60% 40%;
+    --warning: 38 90% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-sans font-semibold tracking-tight text-foreground;
+  }
+}
+
+@layer components {
+  /* Layout primitives */
+  .ui-page {
+    @apply mx-auto w-full max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pb-24;
+  }
+
+  .ui-section {
+    @apply border-t border-border/50 pt-12 first:border-t-0 first:pt-0;
+  }
+
+  .ui-panel {
+    @apply rounded-lg border border-border/60 bg-card;
+  }
+
+  .ui-panel-quiet {
+    @apply rounded-lg border border-border/40 bg-muted/40;
+  }
+
+  .ui-overline {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+  }
+
+  .ui-prose-width {
+    @apply max-w-prose;
+  }
+
+  /* Back-compat aliases used during migration (prefer ui-* in new code) */
+  .app-main-canvas {
+    @apply ui-page;
+  }
+
+  .surface-panel {
+    @apply ui-panel p-6;
+  }
+
+  .surface-subtle {
+    @apply ui-panel-quiet;
+  }
+
+  .label-overline {
+    @apply ui-overline;
+  }
+
+  .text-body {
+    @apply text-sm leading-relaxed text-foreground/90;
+  }
+
+  /* Mermaid diagram viewer: search + isolate node */
+  .diagram-svg--isolate .diagram-node:not(.diagram-node--isolate),
+  .diagram-svg--isolate g.node:not(.diagram-node--isolate) {
+    opacity: 0.22;
+    transition: opacity 0.15s ease;
+  }
+
+  .diagram-node--isolate {
+    opacity: 1 !important;
+  }
+
+  .diagram-node.diagram-node--search .node-bkg,
+  g.node.diagram-node--search rect,
+  g.node.diagram-node--search circle,
+  g.node.diagram-node--search ellipse,
+  g.node.diagram-node--search polygon,
+  g.node.diagram-node--search path {
+    stroke: hsl(var(--ring));
+    stroke-width: 2px;
+  }
+}

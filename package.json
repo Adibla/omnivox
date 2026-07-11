@@ -1,0 +1,24 @@
+{
+  "name": "omnivox",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "dev:worker": "npm run dev -w apps/worker",
+    "build": "npm run build -w apps/web",
+    "build:worker": "npm run build -w apps/worker",
+    "lint": "npm run typecheck",
+    "typecheck": "npm run typecheck -w apps/web",
+    "typecheck:worker": "npm run typecheck -w apps/worker",
+    "test": "npm run test -w apps/web",
+    "db:migrate": "node scripts/migrate.mjs",
+    "verify": "npm run typecheck && npm run typecheck:worker && npm run test && npm run build && npm run build:worker"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

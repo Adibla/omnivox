@@ -1,0 +1,30 @@
+{
+  "name": "@omnivox/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "worker:run": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.825.0",
+    "@aws-sdk/s3-request-presigner": "^3.825.0",
+    "@omnivox/security": "0.1.0",
+    "@omnivox/shared": "0.1.0",
+    "bullmq": "^5.58.5",
+    "ioredis": "^5.8.0",
+    "openai": "^4.104.0",
+    "pg": "^8.16.3",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

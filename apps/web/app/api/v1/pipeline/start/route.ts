@@ -1,0 +1,163 @@
+import { randomUUID } from "node:crypto";
+import { PipelineStartRequestSchema } from "@omnivox/shared";
+import {
+  ensureSessionCookie,
+  getOwnerFromSession,
+  resolveSessionTenantId,
+  requireAuthenticatedSession,
+  validateCsrf
+} from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { fail, ok } from "@/lib/http";
+import { createJob, getJobByIdempotency, writeAuditEvent } from "@/lib/pipeline-db-store";
+import { enqueuePipelineStage } from "@/lib/queue";
+import { getEnv } from "@/lib/env";
+import { getCorrelationId } from "@/lib/http";
+import { logError, logInfo } from "@/lib/logger";
+import { ZodError } from "zod";
+
+function createIdempotencyKey(input: { meetingId: string; objectKey: string; ownerSubject?: string | null }) {
+  return `${input.ownerSubject ?? "anonymous"}:${input.meetingId}:${input.objectKey}`;
+}
+
+function estimateTokenUsage(input: { transcriptText?: string }) {
+  if (!input.transcriptText) {
+    return 1500;
+  }
+  return Math.ceil(input.transcriptText.length / 4);
+}
+
+function describeError(error: unknown) {
+  if (error instanceof ZodError) {
+    return JSON.stringify(error.issues);
+  }
+  if (error instanceof Error) {
+    return error.message || error.name;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+export async function POST(request: Request) {
+  const correlationId = getCorrelationId(request);
+  try {
+    const session = await ensureSessionCookie();
+    try {
+      requireAuthenticatedSession(session);
+    } catch (error) {
+      return fail(request, {
+        status: 401,
+        code: "unauthorized",
+        message: "Login richiesto.",
+        detail: describeError(error)
+      });
+    }
+    if (!validateCsrf(request, session.csrfToken)) {
+      return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
+    }
+    const tenantId = resolveSessionTenantId(session);
+    if (!checkRateLimit(`${tenantId}:pipeline_start`)) {
+      return fail(request, { status: 429, code: "rate_limited", message: "Rate limit exceeded." });
+    }
+
+    const payload = PipelineStartRequestSchema.parse(await request.json());
+    if (!payload.objectKey.startsWith(`${tenantId}/`)) {
+      return fail(request, { status: 403, code: "forbidden", message: "Accesso negato a questo oggetto." });
+    }
+    const owner = getOwnerFromSession(session);
+    const idempotencyKey = createIdempotencyKey({
+      meetingId: payload.meetingId,
+      objectKey: payload.objectKey,
+      ownerSubject: owner.ownerSubject
+    });
+    const existing = await getJobByIdempotency(idempotencyKey);
+    if (existing) {
+      return ok(
+        request,
+        {
+          jobId: existing.jobId,
+          state: existing.state
+        },
+        202
+      );
+    }
+
+    const tokenEstimate = estimateTokenUsage(payload);
+    if (tokenEstimate > getEnv().PIPELINE_TOKEN_BUDGET_PER_MEETING) {
+      return fail(request, {
+        status: 409,
+        code: "conflict",
+        message: "Token budget exceeded for meeting pipeline."
+      });
+    }
+
+    const jobId = randomUUID();
+    await createJob({
+      jobId,
+      idempotencyKey,
+      meetingId: payload.meetingId,
+      displayTitle: payload.displayTitle ?? null,
+      objectKey: payload.objectKey,
+      state: "queued",
+      tokenEstimate,
+      tenantId,
+      ownerIssuer: owner.ownerIssuer,
+      ownerSubject: owner.ownerSubject
+    });
+    await writeAuditEvent({
+      jobId,
+      eventType: "pipeline-started",
+      payload: {
+        meetingId: payload.meetingId,
+        displayTitle: payload.displayTitle ?? null,
+        objectKey: payload.objectKey
+      }
+    });
+    await enqueuePipelineStage({
+      name: "transcription",
+      jobId,
+      payload: {
+        jobId,
+        meetingId: payload.meetingId,
+        objectKey: payload.objectKey,
+        transcriptText: payload.transcriptText ?? null,
+        meetingTemplate: payload.meetingTemplate,
+        outputLanguage: payload.outputLanguage,
+        languageHint: payload.languageHint
+      }
+    });
+    logInfo({
+      correlationId,
+      event: "pipeline.v1.start.enqueued",
+      payload: {
+        jobId,
+        meetingId: payload.meetingId
+      }
+    });
+    return ok(
+      request,
+      {
+        jobId,
+        state: "queued"
+      },
+      202
+    );
+  } catch (error) {
+    const detail = describeError(error);
+    const isValidation = error instanceof ZodError;
+    logError({
+      correlationId,
+      event: "pipeline.v1.start.failed",
+      error: detail
+    });
+    return fail(request, {
+      status: isValidation ? 400 : 500,
+      code: isValidation ? "bad_request" : "internal_error",
+      message: "Impossibile avviare la pipeline.",
+      detail
+    });
+  }
+}
