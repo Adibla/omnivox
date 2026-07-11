@@ -8,6 +8,12 @@
   <em>Upload audio, transcribe it, and turn it into meeting summaries, diagrams, actions, transcripts, and exports.</em>
 </p>
 
+<p align="center">
+  <a href="https://github.com/Adibla/omnivox/actions/workflows/ci.yml"><img src="https://github.com/Adibla/omnivox/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License: Apache-2.0" /></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node >= 20" />
+</p>
+
 ---
 
 The project is meant to be easy to try locally without relying on external services for login and storage. The compose stack starts Keycloak, MinIO, Postgres, and Redis.

@@ -4,6 +4,10 @@
   "private": true,
   "description": "Open source AI notetaking and synthesis: upload audio, transcribe it, and turn it into summaries, diagrams, actions, and exports",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Adibla/omnivox.git"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
