@@ -1,20 +1,10 @@
 import { createServer } from "node:http";
 import { URL } from "node:url";
+import { logInfo } from "@/lib/logger";
 import { getWorkerDbPool } from "./queue/db";
 import { startPipelineWorker } from "./queue/worker";
 
 const HEALTH_PORT = Number(process.env.WORKER_HEALTH_PORT ?? 4010);
-
-function logInfo(event: string, payload: Record<string, unknown> = {}) {
-  process.stdout.write(
-    `${JSON.stringify({
-      level: "info",
-      at: new Date().toISOString(),
-      event,
-      payload,
-    })}\n`,
-  );
-}
 
 async function isReady() {
   try {
@@ -69,11 +59,11 @@ function createHealthServer() {
 async function main() {
   const worker = startPipelineWorker();
   await worker.waitUntilReady();
-  logInfo("worker.started");
+  logInfo({ event: "worker.started" });
 
   const healthServer = createHealthServer();
   healthServer.listen(HEALTH_PORT, () => {
-    logInfo("worker.health.listening", { port: HEALTH_PORT });
+    logInfo({ event: "worker.health.listening", payload: { port: HEALTH_PORT } });
   });
 }
 

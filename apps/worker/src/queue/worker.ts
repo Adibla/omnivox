@@ -3,6 +3,7 @@ import IORedis from "ioredis";
 import { PipelineMessageSchema, PipelineStageSchema, type PipelineMessage } from "@omnivox/shared";
 import OpenAI from "openai";
 import { getWorkerEnv } from "@/lib/env";
+import { logError, logInfo } from "@/lib/logger";
 import { getJob, updateJobState, writeAudit } from "./db";
 import { buildQueueJobId } from "./job-ids";
 import { processActions } from "./stages/actions";
@@ -65,31 +66,56 @@ export function startPipelineWorker() {
     },
   );
 
+  worker.on("completed", (job) => {
+    logInfo({
+      event: "pipeline.stage.completed",
+      payload: { jobId: job.data?.jobId, stage: job.name },
+    });
+  });
+
   worker.on("failed", async (job, error) => {
     if (!job) {
       return;
     }
     const payload = PipelineMessageSchema.safeParse(job.data);
     if (!payload.success) {
+      logError({
+        event: "pipeline.stage.failed",
+        error: error.message,
+        payload: { stage: job.name },
+      });
       return;
     }
-    await updateJobState(payload.data.jobId, "failed", error.message);
-    await deadLetterQueue.add(
-      "dead_letter",
-      {
-        jobId: payload.data.jobId,
-        stage: job.name,
-        payload: payload.data,
-        error: error.message,
-      },
-      {
-        jobId: buildQueueJobId([payload.data.jobId, job.name, "dead"]),
-      },
-    );
-    await writeAudit(payload.data.jobId, "pipeline-failed", {
-      stage: job.name,
+    logError({
+      event: "pipeline.stage.failed",
       error: error.message,
+      payload: { jobId: payload.data.jobId, stage: job.name },
     });
+    try {
+      await updateJobState(payload.data.jobId, "failed", error.message);
+      await deadLetterQueue.add(
+        "dead_letter",
+        {
+          jobId: payload.data.jobId,
+          stage: job.name,
+          payload: payload.data,
+          error: error.message,
+        },
+        {
+          jobId: buildQueueJobId([payload.data.jobId, job.name, "dead"]),
+        },
+      );
+      await writeAudit(payload.data.jobId, "pipeline-failed", {
+        stage: job.name,
+        error: error.message,
+      });
+    } catch (handlerError) {
+      logError({
+        event: "pipeline.failed_handler.error",
+        error: handlerError instanceof Error ? handlerError.message : String(handlerError),
+        payload: { jobId: payload.data.jobId, stage: job.name },
+      });
+    }
   });
 
   return worker;
