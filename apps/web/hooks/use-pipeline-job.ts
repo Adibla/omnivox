@@ -90,7 +90,7 @@ export function usePipelineJob(
       } catch (e) {
         if (!cancelled) {
           setPollError({
-            message: e instanceof Error ? e.message : "Errore di rete durante il polling.",
+            message: e instanceof Error ? e.message : "Network error while polling.",
           });
           setIsLoading(false);
         }

@@ -11,7 +11,6 @@ export type PipelineQueueJobName =
 
 let redisConnection: IORedis | null = null;
 let pipelineQueue: Queue | null = null;
-let deadLetterQueue: Queue | null = null;
 
 function buildQueueJobId(parts: Array<string>) {
   return parts.join("__");
@@ -37,16 +36,6 @@ export function getPipelineQueue() {
   return pipelineQueue;
 }
 
-export function getDeadLetterQueue() {
-  if (deadLetterQueue) {
-    return deadLetterQueue;
-  }
-  deadLetterQueue = new Queue("pipeline_dead_letter", {
-    connection: getRedis(),
-  });
-  return deadLetterQueue;
-}
-
 export async function enqueuePipelineStage(input: {
   name: PipelineQueueJobName;
   payload: Record<string, unknown>;
@@ -66,21 +55,4 @@ export async function enqueuePipelineStage(input: {
     removeOnComplete: true,
     removeOnFail: false,
   });
-}
-
-export async function enqueueDeadLetter(input: {
-  jobId: string;
-  stage: PipelineQueueJobName;
-  payload: Record<string, unknown>;
-  error: string;
-}) {
-  await getDeadLetterQueue().add(
-    "dead_letter",
-    {
-      ...input,
-    },
-    {
-      jobId: buildQueueJobId([input.jobId, input.stage, "dead"]),
-    },
-  );
 }
