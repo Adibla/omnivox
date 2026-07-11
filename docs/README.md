@@ -4,12 +4,12 @@ This folder keeps the notes that would make the main README too heavy.
 
 ## Documents
 
-| File | Contents |
-|------|----------|
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Architecture, runtime flow, main APIs, env, and known limits |
-| [`PRIVACY.md`](PRIVACY.md) | Data handling, AI backend, retention, and GDPR notes |
-| [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | Common local issues |
-| [`../ROADMAP.md`](../ROADMAP.md) | Planned or desired work |
+| File                                       | Contents                                                     |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md)       | Architecture, runtime flow, main APIs, env, and known limits |
+| [`PRIVACY.md`](PRIVACY.md)                 | Data handling, AI backend, retention, and GDPR notes         |
+| [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) | Common local issues                                          |
+| [`../ROADMAP.md`](../ROADMAP.md)           | Planned or desired work                                      |
 
 ## Suggested Order
 
@@ -18,7 +18,3 @@ This folder keeps the notes that would make the main README too heavy.
 3. [`PRIVACY.md`](PRIVACY.md) — privacy/GDPR notes
 4. [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) — local debugging
 5. [`../ROADMAP.md`](../ROADMAP.md) — planned improvements
-
-## Note
-
-Environment variables, endpoints, and package names stay in English because they are part of the code.

@@ -4,16 +4,16 @@ These are the technical notes for the project. The README explains how to get st
 
 ## Components
 
-| Component | Role |
-|-----------|------|
-| Browser | UI, file selection, SHA-256 hash, direct storage upload, polling, report rendering |
-| Web (`apps/web`) | Next.js, UI, `/api/v1/*` routes, session, CSRF, S3 presign, pipeline enqueue, DB reads |
-| Worker (`apps/worker`) | BullMQ consumer, transcription, preprocessing, reasoning, lazy actions/diagrams |
-| Redis | BullMQ queue and server-side OIDC session token store |
-| Postgres | Job metadata, report data, actions, artifacts, generation status, and audit data |
-| MinIO/S3 | Original audio files |
-| Keycloak | Local/optional OIDC identity provider |
-| OpenAI / compatible endpoint | Transcription and generated outputs |
+| Component                    | Role                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| Browser                      | UI, file selection, SHA-256 hash, direct storage upload, polling, report rendering     |
+| Web (`apps/web`)             | Next.js, UI, `/api/v1/*` routes, session, CSRF, S3 presign, pipeline enqueue, DB reads |
+| Worker (`apps/worker`)       | BullMQ consumer, transcription, preprocessing, reasoning, lazy actions/diagrams        |
+| Redis                        | BullMQ queue and server-side OIDC session token store                                  |
+| Postgres                     | Job metadata, report data, actions, artifacts, generation status, and audit data       |
+| MinIO/S3                     | Original audio files                                                                   |
+| Keycloak                     | Local/optional OIDC identity provider                                                  |
+| OpenAI / compatible endpoint | Transcription and generated outputs                                                    |
 
 The browser does not call the AI backend directly. It also does not call the worker. It goes through the web API, which enqueues work in Redis and reads state from Postgres.
 
@@ -68,15 +68,15 @@ Actions and diagrams are generated on demand. A job can be `completed` while the
 
 Postgres is the source of truth. The API response still exposes a convenient `result` object for the frontend, but that object is assembled from normalized tables instead of being stored as a central JSON blob.
 
-| Table | Purpose |
-|-------|---------|
-| `pipeline_jobs` | Execution metadata: internal numeric `id`, public `external_id`, idempotency key, meeting id, display title, object key, state, owner, tenant, error, timestamps, soft delete |
-| `pipeline_results` | Base report: executive brief, sentiment, normalized transcript, participants, timestamped transcript segments, schema version |
-| `pipeline_actions` | Generated tasks, decisions, risks, and follow-ups |
-| `pipeline_action_states` | User-controlled board state for each action |
-| `pipeline_artifacts` | Generated Mermaid artifacts such as mind maps and flowcharts |
-| `pipeline_artifact_statuses` | Lazy generation state for `actions` and `diagrams` |
-| `audit_events` | Operational audit trail for pipeline and generation events |
+| Table                        | Purpose                                                                                                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pipeline_jobs`              | Execution metadata: internal numeric `id`, public `external_id`, idempotency key, meeting id, display title, object key, state, owner, tenant, error, timestamps, soft delete |
+| `pipeline_results`           | Base report: executive brief, sentiment, normalized transcript, participants, timestamped transcript segments, schema version                                                 |
+| `pipeline_actions`           | Generated tasks, decisions, risks, and follow-ups                                                                                                                             |
+| `pipeline_action_states`     | User-controlled board state for each action                                                                                                                                   |
+| `pipeline_artifacts`         | Generated Mermaid artifacts such as mind maps and flowcharts                                                                                                                  |
+| `pipeline_artifact_statuses` | Lazy generation state for `actions` and `diagrams`                                                                                                                            |
+| `audit_events`               | Operational audit trail for pipeline and generation events                                                                                                                    |
 
 Tables use numeric primary keys internally and expose UUIDs through `external_id` at the API boundary. Child tables reference the internal `pipeline_jobs.id`; URLs, queue payloads, recent items, and API responses use the public execution UUID.
 
@@ -171,24 +171,24 @@ GET http://localhost:4010/ready
 
 All product APIs live under `/api/v1`.
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `POST` | `/auth/session` | create/reuse session and return CSRF token |
-| `GET` | `/auth/login` | redirect to Keycloak login |
-| `GET` | `/auth/callback` | OIDC callback |
-| `GET` | `/auth/logout` | app/Keycloak logout |
-| `POST` | `/storage/presign` | presigned URL for audio upload |
-| `POST` | `/storage/complete` | verify object after upload |
-| `POST` | `/pipeline/start` | create job and enqueue pipeline |
-| `GET` | `/pipeline/{jobId}` | read state and result |
-| `POST` | `/pipeline/{jobId}/actions/generate` | generate actions on demand |
-| `POST` | `/pipeline/{jobId}/diagrams/generate` | generate diagrams on demand |
-| `PATCH` | `/pipeline/{jobId}/actions/{actionId}` | update action card status |
-| `POST` | `/pipeline/{jobId}/read-audio` | temporary URL to replay source audio |
-| `POST` | `/pipeline/{jobId}/ask` | ask a question about the meeting |
-| `POST` | `/pipeline/{jobId}/translate` | translate the report |
-| `GET` | `/executions` | list recent analyses visible to the user |
-| `DELETE` | `/executions/{jobId}` | remove an analysis from the user's list |
+| Method   | Endpoint                               | Purpose                                    |
+| -------- | -------------------------------------- | ------------------------------------------ |
+| `POST`   | `/auth/session`                        | create/reuse session and return CSRF token |
+| `GET`    | `/auth/login`                          | redirect to Keycloak login                 |
+| `GET`    | `/auth/callback`                       | OIDC callback                              |
+| `GET`    | `/auth/logout`                         | app/Keycloak logout                        |
+| `POST`   | `/storage/presign`                     | presigned URL for audio upload             |
+| `POST`   | `/storage/complete`                    | verify object after upload                 |
+| `POST`   | `/pipeline/start`                      | create job and enqueue pipeline            |
+| `GET`    | `/pipeline/{jobId}`                    | read state and result                      |
+| `POST`   | `/pipeline/{jobId}/actions/generate`   | generate actions on demand                 |
+| `POST`   | `/pipeline/{jobId}/diagrams/generate`  | generate diagrams on demand                |
+| `PATCH`  | `/pipeline/{jobId}/actions/{actionId}` | update action card status                  |
+| `POST`   | `/pipeline/{jobId}/read-audio`         | temporary URL to replay source audio       |
+| `POST`   | `/pipeline/{jobId}/ask`                | ask a question about the meeting           |
+| `POST`   | `/pipeline/{jobId}/translate`          | translate the report                       |
+| `GET`    | `/executions`                          | list recent analyses visible to the user   |
+| `DELETE` | `/executions/{jobId}`                  | remove an analysis from the user's list    |
 
 Error envelope:
 
@@ -219,19 +219,19 @@ npm run dev:worker
 
 Local services:
 
-| Service | URL |
-|---------|-----|
-| Web | `http://localhost:3000` |
-| Keycloak | `http://localhost:8080` |
-| MinIO console | `http://localhost:9001` |
+| Service       | URL                            |
+| ------------- | ------------------------------ |
+| Web           | `http://localhost:3000`        |
+| Keycloak      | `http://localhost:8080`        |
+| MinIO console | `http://localhost:9001`        |
 | Worker health | `http://localhost:4010/health` |
 
 Demo Keycloak users:
 
 | Username | Password | Tenant |
-|----------|----------|--------|
-| `demo` | `demo` | `acme` |
-| `demo2` | `demo2` | `acme` |
+| -------- | -------- | ------ |
+| `demo`   | `demo`   | `acme` |
+| `demo2`  | `demo2`  | `acme` |
 
 ## Essential Env
 
@@ -273,7 +273,9 @@ If the same user starts the same analysis on the same object again, the API retu
 
 ## Known Limits
 
-- Rate limiting is in-memory; multi-replica deployments need Redis or an API gateway.
+- Rate limiting is in-memory: per instance and reset on restart; multi-replica deployments need Redis or an API gateway.
+- The `/api/v1/*` routes are same-origin by design: no CORS headers are set, so they are meant to be consumed only by the bundled web app, not by external clients.
+- The weak default `SESSION_SECRET` is rejected only when `NODE_ENV=production`. Real deployments must set `NODE_ENV=production` explicitly, otherwise the app starts with the insecure default.
 - Worker readiness is still simple; it mostly checks Postgres today.
 - A DLQ exists on the worker side, but operator tooling for inspect/replay is still missing.
 - Large files need chunking or preprocessing to go beyond the current direct upload limit.
