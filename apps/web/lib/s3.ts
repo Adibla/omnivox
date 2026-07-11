@@ -1,5 +1,6 @@
 import {
   S3Client,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   type PutObjectCommandInput,
@@ -7,7 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { buildObjectKey, createSecurityHeaders } from "@omnivox/security";
-import type { PresignRequest, PresignResponse } from "@omnivox/shared";
+import { AUDIO_MAX_BYTES, type PresignRequest, type PresignResponse } from "@omnivox/shared";
 import { getEnv } from "./env";
 
 function buildS3Client(endpoint: string) {
@@ -73,12 +74,18 @@ export async function createPresignedUpload(request: PresignRequest): Promise<Pr
 
 export async function verifyUploadedObject(objectKey: string) {
   const env = getEnv();
-  await getS3Client().send(
+  const head = await getS3Client().send(
     new HeadObjectCommand({
       Bucket: env.S3_BUCKET,
       Key: objectKey,
     }),
   );
+  // Presigned PUTs do not bind the real body size, so the declared
+  // contentLength from the presign request must be re-checked here.
+  if ((head.ContentLength ?? 0) > AUDIO_MAX_BYTES) {
+    await getS3Client().send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: objectKey }));
+    throw new Error(`Uploaded object exceeds the ${AUDIO_MAX_BYTES} byte limit.`);
+  }
 }
 
 export async function createPresignedReadUrl(objectKey: string) {

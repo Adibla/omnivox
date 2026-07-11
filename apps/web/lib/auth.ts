@@ -156,7 +156,10 @@ export async function consumeOidcStateCookie() {
 
 export function validateCsrf(request: Request, csrfToken: string) {
   const header = request.headers.get("x-csrf-token");
-  return Boolean(header && header === csrfToken);
+  if (!header || header.length !== csrfToken.length) {
+    return false;
+  }
+  return timingSafeEqual(Buffer.from(header), Buffer.from(csrfToken));
 }
 
 export function decodeSession(value: string): AppSession {
