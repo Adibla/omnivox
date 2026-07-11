@@ -1,10 +1,13 @@
 import type { AnalysisOutput } from "@omnivox/shared";
+import { describeAction, exportLabels } from "./export-labels";
 
 export function buildMeetingExportMarkdown(input: {
   meetingId: string;
   result: AnalysisOutput;
+  locale: string;
 }): string {
-  const { meetingId, result } = input;
+  const { meetingId, result, locale } = input;
+  const labels = exportLabels(locale);
   const lines: string[] = [
     `# OmniVox — ${meetingId}`,
     "",
@@ -14,23 +17,29 @@ export function buildMeetingExportMarkdown(input: {
     "",
     result.executiveBriefMarkdown,
     "",
-    "## Azioni",
+    `## ${labels.sections.actions}`,
     "",
   ];
   for (const action of result.actions) {
-    const due = action.dueDate ? new Date(action.dueDate).toISOString() : "—";
+    const described = describeAction(action, locale);
     lines.push(
-      `- **${action.title}** — Stato: ${action.status} — Tipo: ${action.actionType} — Owner: ${action.owner} — Priorità: ${action.priority} — Rischio: ${action.risk} — Scadenza: ${due}`,
+      `- **${action.title}** — ${labels.fields.status}: ${described.status} — ${labels.fields.type}: ${described.type} — ${labels.fields.owner}: ${action.owner} — ${labels.fields.priority}: ${described.priority} — ${labels.fields.risk}: ${described.risk} — ${labels.fields.due}: ${described.due}`,
       "",
     );
   }
   if (result.participants?.length) {
-    lines.push("## Partecipanti", "", result.participants.map((p) => `- ${p}`).join("\n"), "", "");
+    lines.push(
+      `## ${labels.sections.participants}`,
+      "",
+      result.participants.map((p) => `- ${p}`).join("\n"),
+      "",
+      "",
+    );
   }
   if (result.normalizedTranscript) {
-    lines.push("## Trascrizione", "", result.normalizedTranscript, "", "");
+    lines.push(`## ${labels.sections.transcript}`, "", result.normalizedTranscript, "", "");
   }
-  lines.push("## Diagrammi (Mermaid)", "");
+  lines.push(`## ${labels.sections.diagrams}`, "");
   for (const art of result.artifacts) {
     lines.push(
       `### ${art.title} (${art.diagramType})`,

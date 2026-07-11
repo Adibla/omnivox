@@ -156,7 +156,7 @@ export function ResultsWorkspace({
     if (!visibleResult) {
       return;
     }
-    const text = buildSlackSummary({ title: exportTitle, result: visibleResult });
+    const text = buildSlackSummary({ title: exportTitle, result: visibleResult, locale });
     const ok = await copyToClipboard(text);
     flashCopied(ok ? t("result.copySlackOk") : t("result.copyFail"));
   };
@@ -165,7 +165,11 @@ export function ResultsWorkspace({
     if (!visibleResult) {
       return;
     }
-    const md = buildMeetingExportMarkdown({ meetingId: exportTitle, result: visibleResult });
+    const md = buildMeetingExportMarkdown({
+      meetingId: exportTitle,
+      result: visibleResult,
+      locale,
+    });
     const safeName = exportTitle.replace(/[^\w\-]+/g, "_").slice(0, 80);
     downloadTextFile(`omnivox_${safeName}.md`, md);
     flashCopied(t("result.downloadReportOk"));
@@ -175,7 +179,7 @@ export function ResultsWorkspace({
     if (!visibleResult) {
       return;
     }
-    const ics = buildActionsIcs({ title: exportTitle, result: visibleResult });
+    const ics = buildActionsIcs({ title: exportTitle, result: visibleResult, locale });
     const safeName = exportTitle.replace(/[^\w\-]+/g, "_").slice(0, 80);
     downloadTextFile(`omnivox_actions_${safeName}.ics`, ics, "text/calendar;charset=utf-8");
     flashCopied(t("result.downloadIcsOk"));
