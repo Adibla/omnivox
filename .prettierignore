@@ -1,0 +1,10 @@
+node_modules
+.next
+dist
+coverage
+package-lock.json
+*.tsbuildinfo
+apps/web/.next
+apps/worker/dist
+packages/wasm-audio/cpp/build
+.github

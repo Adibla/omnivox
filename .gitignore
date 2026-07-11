@@ -1,9 +1,27 @@
+# Dependencies
 node_modules
+
+# Build outputs
 .next
 dist
 coverage
-*.log
 *.tsbuildinfo
+
+# Local data (legacy store, never tracked)
+.data
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+
+# Native artifacts (WASM, C/C++ build outputs)
+*.wasm
+*.o
+*.map
+
+# Logs
+*.log
+
+# Env files (examples are tracked; actual env is not)
 .env
 .env.local
-.data

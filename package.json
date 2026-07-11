@@ -11,14 +11,26 @@
     "dev:worker": "npm run dev -w apps/worker",
     "build": "npm run build -w apps/web",
     "build:worker": "npm run build -w apps/worker",
-    "lint": "npm run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "npm run typecheck -w apps/web",
     "typecheck:worker": "npm run typecheck -w apps/worker",
     "test": "npm run test -w apps/web",
     "db:migrate": "node scripts/migrate.mjs",
+    "setup": "bash scripts/setup.sh",
     "verify": "npm run typecheck && npm run typecheck:worker && npm run test && npm run build && npm run build:worker"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^15.15.0",
+    "prettier": "^3.8.4",
     "typescript": "^5.8.3"
   }
 }
