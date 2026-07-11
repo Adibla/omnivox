@@ -191,11 +191,10 @@ For a real deployment, define retention, deletion, legal basis, privacy notice, 
 
 ```bash
 npm run db:migrate
-npm run typecheck
-npm run typecheck:worker
+npm run verify        # typecheck + test + build (web and worker)
+npm run lint
+npm run format
 npm run test
-npm run build
-npm run build:worker
 ```
 
 Worker probes:

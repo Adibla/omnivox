@@ -45,10 +45,13 @@ Run the full verification locally:
 
 ```bash
 npm run verify
+npm run lint
+npm run format:check
 ```
 
-This runs typecheck (web + worker), tests, and builds (web + worker). CI runs the
-same checks on every pull request.
+`verify` runs typecheck (web + worker), tests, and builds (web + worker). CI runs
+all of the above on every pull request, so lint and formatting failures block the
+merge; `npm run lint:fix` and `npm run format` fix most issues automatically.
 
 ## Pull request guidelines
 
