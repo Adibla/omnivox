@@ -10,11 +10,13 @@ import {
   type ActionStatus,
 } from "@/hooks/use-optimistic-action-statuses";
 import { useSessionCsrf } from "@/hooks/use-session-csrf";
+import { cn } from "@/lib/utils";
 import {
   ActionDetail,
   ActionLane,
   Metric,
   dueState,
+  statusLabel,
   type TaggedAction,
 } from "@/components/action-board-parts";
 
@@ -57,16 +59,18 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
     [actions],
   );
 
-  const { syncingMap, syncError, setStatus, statusFor } = useOptimisticActionStatuses({
-    actions,
-    jobId,
-    csrfReady,
-    csrfToken,
-    messages: {
-      sessionNotReady: t("actions.sessionNotReady"),
-      statusNotSaved: t("actions.statusNotSaved"),
+  const { syncingMap, feedback, clearFeedback, setStatus, statusFor } = useOptimisticActionStatuses(
+    {
+      actions,
+      jobId,
+      csrfReady,
+      csrfToken,
+      messages: {
+        sessionNotReady: t("actions.sessionNotReady"),
+        statusNotSaved: t("actions.statusNotSaved"),
+      },
     },
-  });
+  );
 
   useEffect(() => {
     setSelectedId((current) =>
@@ -75,6 +79,14 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
         : (tagged[0]?.stableId ?? "action-0"),
     );
   }, [jobId, tagged]);
+
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+    const timer = window.setTimeout(clearFeedback, 5000);
+    return () => window.clearTimeout(timer);
+  }, [feedback, clearFeedback]);
 
   const stats = useMemo(() => {
     const open = tagged.filter((row) => statusFor(row.stableId) !== "done");
@@ -202,7 +214,6 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
             ))}
           </div>
         </div>
-        {syncError ? <p className="mt-3 text-xs text-destructive">{syncError}</p> : null}
       </div>
 
       <div>
@@ -260,6 +271,40 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
           ) : null}
         </div>
       </div>
+
+      {feedback ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+        >
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-lg border bg-background px-4 py-2.5 shadow-lg",
+              feedback.kind === "saved" ? "border-border" : "border-destructive/60",
+            )}
+          >
+            <span className="text-sm text-foreground">
+              {feedback.kind === "saved"
+                ? `${t("actions.movedTo")} “${statusLabel(feedback.status, t)}”`
+                : (feedback.message ?? t("actions.statusNotSaved"))}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant={feedback.kind === "saved" ? "ghost" : "outline"}
+              onClick={() => {
+                const target =
+                  feedback.kind === "saved" ? feedback.previousStatus : feedback.status;
+                clearFeedback();
+                setStatus(feedback.stableId, target);
+              }}
+            >
+              {feedback.kind === "saved" ? t("actions.undo") : t("actions.retry")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

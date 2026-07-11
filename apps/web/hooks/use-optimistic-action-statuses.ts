@@ -5,6 +5,14 @@ import type { AnalysisOutput } from "@omnivox/shared";
 
 export type ActionStatus = NonNullable<AnalysisOutput["actions"][number]["status"]>;
 
+export type ActionSyncFeedback = {
+  kind: "saved" | "error";
+  stableId: string;
+  status: ActionStatus;
+  previousStatus: ActionStatus;
+  message?: string;
+};
+
 type UseOptimisticActionStatusesInput = {
   actions: AnalysisOutput["actions"];
   jobId?: string | null;
@@ -31,7 +39,7 @@ export function useOptimisticActionStatuses({
 }: UseOptimisticActionStatusesInput) {
   const [statusMap, setStatusMap] = useState<Record<string, ActionStatus>>({});
   const [syncingMap, setSyncingMap] = useState<Record<string, boolean>>({});
-  const [syncError, setSyncError] = useState("");
+  const [feedback, setFeedback] = useState<ActionSyncFeedback | null>(null);
   const statusMapRef = useRef<Record<string, ActionStatus>>({});
   const syncingMapRef = useRef<Record<string, boolean>>({});
   const requestSeqRef = useRef<Record<string, number>>({});
@@ -55,7 +63,6 @@ export function useOptimisticActionStatuses({
 
   useEffect(() => {
     mergeBackendStatuses(actions);
-    setSyncError("");
   }, [actions, actionSignature, backendStatusSignature, jobId]);
 
   const setStatus = useCallback(
@@ -66,11 +73,17 @@ export function useOptimisticActionStatuses({
       clearReleaseTimer(stableId);
       applyStatus(stableId, status);
       setSyncing(stableId, true);
-      setSyncError("");
+      setFeedback(null);
 
       if (!jobId || !csrfReady || !csrfToken) {
         rollback(stableId, previous);
-        setSyncError(messages.sessionNotReady);
+        setFeedback({
+          kind: "error",
+          stableId,
+          status,
+          previousStatus: previous,
+          message: messages.sessionNotReady,
+        });
         return;
       }
 
@@ -87,17 +100,30 @@ export function useOptimisticActionStatuses({
           if (!response.ok) {
             rollbackRef.current(stableId, previous);
             const payload = await response.json().catch(() => null);
-            setSyncError(payload?.message ?? messages.statusNotSaved);
+            setFeedback({
+              kind: "error",
+              stableId,
+              status,
+              previousStatus: previous,
+              message: payload?.message ?? messages.statusNotSaved,
+            });
             return;
           }
           releaseSyncAfterSuccessRef.current(stableId);
+          setFeedback({ kind: "saved", stableId, status, previousStatus: previous });
         })
         .catch(() => {
           if (!isLatestRequest(stableId, requestSeq)) {
             return;
           }
           rollbackRef.current(stableId, previous);
-          setSyncError(messages.statusNotSaved);
+          setFeedback({
+            kind: "error",
+            stableId,
+            status,
+            previousStatus: previous,
+            message: messages.statusNotSaved,
+          });
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- rollback and releaseSyncAfterSuccess are reached via stable refs (rollbackRef/releaseSyncAfterSuccessRef) to avoid re-creating this callback on every render.
@@ -116,10 +142,13 @@ export function useOptimisticActionStatuses({
   rollbackRef.current = rollback;
   releaseSyncAfterSuccessRef.current = releaseSyncAfterSuccess;
 
+  const clearFeedback = useCallback(() => setFeedback(null), []);
+
   return {
     statusMap,
     syncingMap,
-    syncError,
+    feedback,
+    clearFeedback,
     setStatus,
     statusFor,
   };
