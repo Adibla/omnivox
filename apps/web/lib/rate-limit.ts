@@ -13,7 +13,7 @@ export function checkRateLimit(key: string) {
   if (!current || current.minute !== nowMinute) {
     memoryRateStore.set(key, {
       minute: nowMinute,
-      count: 1
+      count: 1,
     });
     return true;
   }

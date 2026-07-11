@@ -1,4 +1,14 @@
-export const SUPPORTED_AUDIO_FORMATS = ["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"] as const;
+export const SUPPORTED_AUDIO_FORMATS = [
+  "flac",
+  "mp3",
+  "mp4",
+  "mpeg",
+  "mpga",
+  "m4a",
+  "ogg",
+  "wav",
+  "webm",
+] as const;
 
 export type SupportedAudioFormat = (typeof SUPPORTED_AUDIO_FORMATS)[number];
 
@@ -22,7 +32,7 @@ const CONTENT_TYPE_TO_FORMAT: Record<string, SupportedAudioFormat> = {
   "audio/x-m4a": "m4a",
   "audio/x-wav": "wav",
   "video/mp4": "mp4",
-  "video/webm": "webm"
+  "video/webm": "webm",
 };
 
 const FORMAT_COMPATIBLE_CONTENT_TYPES: Record<SupportedAudioFormat, string[]> = {
@@ -34,14 +44,14 @@ const FORMAT_COMPATIBLE_CONTENT_TYPES: Record<SupportedAudioFormat, string[]> = 
   m4a: ["audio/mp4", "audio/m4a", "audio/x-m4a", "audio/aac"],
   ogg: ["audio/ogg"],
   wav: ["audio/wav", "audio/wave", "audio/x-wav"],
-  webm: ["audio/webm", "video/webm"]
+  webm: ["audio/webm", "video/webm"],
 };
 
 export const SUPPORTED_AUDIO_MIME_TYPES = Object.keys(CONTENT_TYPE_TO_FORMAT).sort();
 
 export const SUPPORTED_AUDIO_ACCEPT = [
   ...SUPPORTED_AUDIO_MIME_TYPES,
-  ...SUPPORTED_AUDIO_FORMATS.map((format) => `.${format}`)
+  ...SUPPORTED_AUDIO_FORMATS.map((format) => `.${format}`),
 ].join(",");
 
 export function normalizeAudioContentType(contentType: string) {
@@ -56,7 +66,10 @@ export function getAudioFormatFromContentType(contentType: string): SupportedAud
   return CONTENT_TYPE_TO_FORMAT[normalizeAudioContentType(contentType)] ?? null;
 }
 
-export function isAudioFormatCompatibleWithContentType(format: SupportedAudioFormat, contentType: string) {
+export function isAudioFormatCompatibleWithContentType(
+  format: SupportedAudioFormat,
+  contentType: string,
+) {
   return FORMAT_COMPATIBLE_CONTENT_TYPES[format].includes(normalizeAudioContentType(contentType));
 }
 

@@ -2,7 +2,7 @@ import { MermaidArtifactSchema } from "@omnivox/shared";
 
 const diagramTypeStart: Record<string, RegExp> = {
   mindmap: /^mindmap/m,
-  flowchart: /^flowchart|^graph/m
+  flowchart: /^flowchart|^graph/m,
 };
 
 export async function validateMermaidArtifact(input: unknown) {
@@ -24,10 +24,7 @@ export async function validateMermaidArtifact(input: unknown) {
 }
 
 export function sanitizeMermaidCode(mermaidCode: string) {
-  return mermaidCode
-    .replace(/[<>]/g, "")
-    .replace(/\r\n/g, "\n")
-    .trim();
+  return mermaidCode.replace(/[<>]/g, "").replace(/\r\n/g, "\n").trim();
 }
 
 /**

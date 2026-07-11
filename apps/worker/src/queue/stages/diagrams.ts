@@ -18,8 +18,8 @@ export async function processDiagrams(payload: PipelineMessage, context: StageCo
     ...result,
     artifactStatus: {
       ...result.artifactStatus,
-      diagrams: artifactStatus("generating")
-    }
+      diagrams: artifactStatus("generating"),
+    },
   });
   try {
     const outLang = outputLanguageInstruction(payload.outputLanguage);
@@ -30,15 +30,15 @@ export async function processDiagrams(payload: PipelineMessage, context: StageCo
           role: "system",
           content: `Return strict JSON only with artifacts (Mermaid diagrams). Generate one mindmap and one flowchart when possible.
 All user-facing text in artifact titles and Mermaid node labels MUST be written in: ${outLang}.
-Keep labels short and readable. For flowcharts, split longer labels with <br/>; never put paragraphs inside nodes.`
+Keep labels short and readable. For flowcharts, split longer labels with <br/>; never put paragraphs inside nodes.`,
         },
         {
           role: "user",
           content: JSON.stringify({
             normalizedTranscript: transcript,
-            participants: result.participants ?? []
-          })
-        }
+            participants: result.participants ?? [],
+          }),
+        },
       ],
       text: {
         format: {
@@ -58,20 +58,24 @@ Keep labels short and readable. For flowcharts, split longer labels with <br/>; 
                   properties: {
                     title: { type: "string", minLength: 3 },
                     diagramType: { type: "string", enum: ["mindmap", "flowchart"] },
-                    mermaidCode: { type: "string", minLength: 20, maxLength: 8000 }
+                    mermaidCode: { type: "string", minLength: 20, maxLength: 8000 },
                   },
-                  required: ["title", "diagramType", "mermaidCode"]
-                }
-              }
+                  required: ["title", "diagramType", "mermaidCode"],
+                },
+              },
             },
-            required: ["artifacts"]
+            required: ["artifacts"],
           },
-          strict: true
-        }
-      }
+          strict: true,
+        },
+      },
     } satisfies ResponseCreateParamsNonStreaming);
     const candidate = JSON.parse(response.output_text) as {
-      artifacts: Array<{ title: string; diagramType: "mindmap" | "flowchart"; mermaidCode: string }>;
+      artifacts: Array<{
+        title: string;
+        diagramType: "mindmap" | "flowchart";
+        mermaidCode: string;
+      }>;
     };
     const latestJob = await getJob(payload.jobId);
     if (!latestJob) {
@@ -84,13 +88,13 @@ Keep labels short and readable. For flowcharts, split longer labels with <br/>; 
         ...artifact,
         mermaidCode: repairMermaidCode({
           diagramType: artifact.diagramType,
-          mermaidCode: artifact.mermaidCode
-        })
+          mermaidCode: artifact.mermaidCode,
+        }),
       })),
       artifactStatus: {
         ...latest.artifactStatus,
-        diagrams: artifactStatus("completed")
-      }
+        diagrams: artifactStatus("completed"),
+      },
     });
     await updateJobResult(payload.jobId, parsed);
     await writeAudit(payload.jobId, "pipeline-step", { state: "diagrams-completed" });
@@ -104,8 +108,11 @@ Keep labels short and readable. For flowcharts, split longer labels with <br/>; 
       ...latest,
       artifactStatus: {
         ...latest.artifactStatus,
-        diagrams: artifactStatus("failed", error instanceof Error ? error.message : "Diagram generation failed.")
-      }
+        diagrams: artifactStatus(
+          "failed",
+          error instanceof Error ? error.message : "Diagram generation failed.",
+        ),
+      },
     });
     await writeAudit(payload.jobId, "pipeline-step", { state: "diagrams-failed" });
   }

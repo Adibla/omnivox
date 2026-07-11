@@ -30,20 +30,25 @@ export const dictionaries = {
     "breadcrumb.new": "Nuova analisi",
     "breadcrumb.report": "Report",
     "overview.title": "Trasforma audio in lavoro operativo",
-    "overview.copy": "Carica una registrazione e ottieni prima un brief leggibile. Azioni e diagrammi si generano solo quando ti servono.",
+    "overview.copy":
+      "Carica una registrazione e ottieni prima un brief leggibile. Azioni e diagrammi si generano solo quando ti servono.",
     "overview.new": "Carica audio",
     "overview.activity": "Attività",
     "overview.completed": "Completate",
     "overview.last7": "Ultimi 7 giorni",
     "overview.actions": "Azioni",
     "overview.history": "Storico disponibile",
-    "overview.actionsHelp": "Somma azioni salvate al completamento. Voci senza conteggio non contano.",
+    "overview.actionsHelp":
+      "Somma azioni salvate al completamento. Voci senza conteggio non contano.",
     "overview.privacy": "Privacy e dati locali",
-    "overview.privacyProtected": "In modalità protetta la lista è filtrata lato server per utente autenticato. OmniVox non salva profili applicativi: usa l'identità del provider solo per isolare i dati.",
-    "overview.privacyLocal": "La lista Recenti è in localStorage: non lascia questo browser e non è sincronizzata tra dispositivi.",
+    "overview.privacyProtected":
+      "In modalità protetta la lista è filtrata lato server per utente autenticato. OmniVox non salva profili applicativi: usa l'identità del provider solo per isolare i dati.",
+    "overview.privacyLocal":
+      "La lista Recenti è in localStorage: non lascia questo browser e non è sincronizzata tra dispositivi.",
     "new.flow": "Nuova analisi",
     "new.title": "Carica audio",
-    "new.copy": "Scegli il file, conferma lingua e contesto, poi lascia che OmniVox prepari il report base. Azioni e diagrammi restano on-demand.",
+    "new.copy":
+      "Scegli il file, conferma lingua e contesto, poi lascia che OmniVox prepari il report base. Azioni e diagrammi restano on-demand.",
     "new.technical": "Privacy upload",
     "new.technicalCopy": "Audio inviato direttamente allo storage configurato",
     "new.step.detail": "Dettaglio",
@@ -61,17 +66,21 @@ export const dictionaries = {
     "new.template": "Tipo riunione",
     "new.outputLanguage": "Lingua output analisi",
     "new.audioLanguage": "Lingua audio (Whisper)",
-    "new.audioLanguageHelp": "Suggerimento ISO-639-1 per migliorare la trascrizione quando la lingua è nota.",
+    "new.audioLanguageHelp":
+      "Suggerimento ISO-639-1 per migliorare la trascrizione quando la lingua è nota.",
     "new.advanced": "Opzioni avanzate",
     "new.transcriptSeed": "Trascritto già disponibile (opzionale)",
-    "new.transcriptPlaceholder": "Incolla un trascritto completo (min. 40 caratteri) per saltare la trascrizione automatica.",
+    "new.transcriptPlaceholder":
+      "Incolla un trascritto completo (min. 40 caratteri) per saltare la trascrizione automatica.",
     "new.run": "Carica e analizza",
     "new.running": "Elaborazione...",
     "new.progress": "Avanzamento",
-    "new.progressHelp": "L'analisi può richiedere qualche minuto in base alla durata dell'audio. Puoi restare su questa scheda.",
+    "new.progressHelp":
+      "L'analisi può richiedere qualche minuto in base alla durata dell'audio. Puoi restare su questa scheda.",
     "new.failure": "Operazione non riuscita",
     "new.readyTitle": "Pronto per l'analisi",
-    "new.readyCopy": "Carica un audio supportato e avvia il report quando i dettagli sono corretti.",
+    "new.readyCopy":
+      "Carica un audio supportato e avvia il report quando i dettagli sono corretti.",
     "new.retry": "Correggi e riprova",
     "new.unexpectedError": "Errore imprevisto durante il flusso.",
     "result.report": "Report",
@@ -100,8 +109,10 @@ export const dictionaries = {
     "result.genericError": "Errore non specificato.",
     "result.unavailableForbiddenTitle": "Analisi non accessibile",
     "result.unavailableMissingTitle": "Analisi non disponibile",
-    "result.unavailableForbiddenDesc": "Il link esiste, ma la sessione corrente non ha accesso a questa analisi.",
-    "result.unavailableMissingDesc": "Il link non corrisponde a un'analisi disponibile oppure è stata rimossa.",
+    "result.unavailableForbiddenDesc":
+      "Il link esiste, ma la sessione corrente non ha accesso a questa analisi.",
+    "result.unavailableMissingDesc":
+      "Il link non corrisponde a un'analisi disponibile oppure è stata rimossa.",
     "result.backOverview": "Torna alla panoramica",
     "result.transcriptUnavailable": "Trascrizione non ancora disponibile.",
     "result.calendar": "Calendario",
@@ -114,7 +125,8 @@ export const dictionaries = {
     "risk.low": "Basso",
     "actions.board": "Board operativa",
     "actions.plan": "Piano operativo",
-    "actions.planHelp": "Priorità, responsabilità e scadenze in una vista pensata per decidere cosa fare subito.",
+    "actions.planHelp":
+      "Priorità, responsabilità e scadenze in una vista pensata per decidere cosa fare subito.",
     "actions.open": "Aperte",
     "actions.inProgress": "In corso",
     "actions.blocked": "Bloccate",
@@ -156,9 +168,11 @@ export const dictionaries = {
     "transcript.audioError": "Impossibile caricare l'audio.",
     "transcript.requestError": "Errore richiesta.",
     "transcript.unavailableTitle": "Trascrizione non disponibile",
-    "transcript.unavailableDesc": "Questo job non contiene ancora la trascrizione nel risultato persistito. Se hai appena aggiornato il codice, riavvia il processo worker e rilancia l'analisi: solo i job completati dopo il riavvio includono trascrizione, partecipanti e segmenti con timestamp.",
+    "transcript.unavailableDesc":
+      "Questo job non contiene ancora la trascrizione nel risultato persistito. Se hai appena aggiornato il codice, riavvia il processo worker e rilancia l'analisi: solo i job completati dopo il riavvio includono trascrizione, partecipanti e segmenti con timestamp.",
     "transcript.participants": "Partecipanti",
-    "transcript.audioHint": "Clic su un segmento per saltare al momento corrispondente nella registrazione.",
+    "transcript.audioHint":
+      "Clic su un segmento per saltare al momento corrispondente nella registrazione.",
     "transcript.searchLabel": "Cerca nei segmenti originali con timestamp",
     "transcript.searchPlaceholder": "Filtra segmento per testo…",
     "transcript.textVersion": "Versione testo",
@@ -172,7 +186,8 @@ export const dictionaries = {
     "transcript.cleaned": "Pulita",
     "transcript.fullAria": "Trascrizione completa",
     "transcript.askTitle": "Domande sul contenuto",
-    "transcript.askHelp": "Risposta basata su trascrizione e estratto del brief (servizio con costo modello lato server).",
+    "transcript.askHelp":
+      "Risposta basata su trascrizione e estratto del brief (servizio con costo modello lato server).",
     "transcript.askPlaceholder": "Es. Quali decisioni sono state prese sul budget?",
     "transcript.askLoading": "Elaborazione…",
     "transcript.ask": "Chiedi",
@@ -189,7 +204,8 @@ export const dictionaries = {
     "result.visualWorkspace": "Spazio visuale",
     "result.executionWorkspace": "Board operativa",
     "result.sourceWorkspace": "Contenuto originale",
-    "result.diagramsDesc": "Mappe navigabili e canvas interattivo per esplorare temi, decisioni e relazioni.",
+    "result.diagramsDesc":
+      "Mappe navigabili e canvas interattivo per esplorare temi, decisioni e relazioni.",
     "result.actionsDesc": "Board operativa con filtri, drag-and-drop e stato salvato lato server.",
     "result.transcriptDesc": "Audio, segmenti, ricerca e domande sul contenuto.",
     "result.exportMdDesc": "Documento completo con brief, diagrammi e azioni.",
@@ -200,12 +216,15 @@ export const dictionaries = {
     "result.generateActions": "Genera azioni",
     "result.generatingDiagrams": "Generazione diagrammi...",
     "result.generatingActions": "Generazione azioni...",
-    "result.generationTimeout": "Generazione ancora in corso. Puoi riprovare il controllo tra poco.",
+    "result.generationTimeout":
+      "Generazione ancora in corso. Puoi riprovare il controllo tra poco.",
     "result.retry": "Riprova",
     "result.diagramsReady": "Diagrammi pronti.",
     "result.actionsReady": "Azioni pronte.",
-    "result.diagramsEmpty": "I diagrammi non vengono creati automaticamente: clicca quando vuoi una vista visuale del contenuto.",
-    "result.actionsEmpty": "Il piano azioni non viene creato automaticamente: clicca quando vuoi trasformare il brief in lavoro operativo.",
+    "result.diagramsEmpty":
+      "I diagrammi non vengono creati automaticamente: clicca quando vuoi una vista visuale del contenuto.",
+    "result.actionsEmpty":
+      "Il piano azioni non viene creato automaticamente: clicca quando vuoi trasformare il brief in lavoro operativo.",
     "label.sentiment": "Sentiment",
     "label.actions": "Azioni",
     "label.diagrams": "Diagrammi",
@@ -285,7 +304,7 @@ export const dictionaries = {
     "diagram.branchOpened": "Ramo aperto",
     "diagram.nodeOpened": "Nodo aperto",
     "diagram.notRenderable": "Diagramma non renderizzabile",
-    "diagram.debugCode": "Sorgente diagramma"
+    "diagram.debugCode": "Sorgente diagramma",
   },
   en: {
     "shell.nav": "Navigation",
@@ -318,20 +337,25 @@ export const dictionaries = {
     "breadcrumb.new": "New analysis",
     "breadcrumb.report": "Report",
     "overview.title": "Turn audio into operational work",
-    "overview.copy": "Upload a recording and get a readable brief first. Actions and diagrams are generated only when you need them.",
+    "overview.copy":
+      "Upload a recording and get a readable brief first. Actions and diagrams are generated only when you need them.",
     "overview.new": "Upload audio",
     "overview.activity": "Activity",
     "overview.completed": "Completed",
     "overview.last7": "Last 7 days",
     "overview.actions": "Actions",
     "overview.history": "Available history",
-    "overview.actionsHelp": "Sum of actions saved when analyses complete. Items without counts are ignored.",
+    "overview.actionsHelp":
+      "Sum of actions saved when analyses complete. Items without counts are ignored.",
     "overview.privacy": "Privacy and local data",
-    "overview.privacyProtected": "In protected mode the list is filtered server-side for the authenticated user. OmniVox does not store application profiles: it uses the identity provider only to isolate data.",
-    "overview.privacyLocal": "The Recent list is stored in localStorage: it stays on this browser and is not synced across devices.",
+    "overview.privacyProtected":
+      "In protected mode the list is filtered server-side for the authenticated user. OmniVox does not store application profiles: it uses the identity provider only to isolate data.",
+    "overview.privacyLocal":
+      "The Recent list is stored in localStorage: it stays on this browser and is not synced across devices.",
     "new.flow": "New analysis",
     "new.title": "Upload audio",
-    "new.copy": "Choose the file, confirm language and context, then let OmniVox prepare the base report. Actions and diagrams stay on demand.",
+    "new.copy":
+      "Choose the file, confirm language and context, then let OmniVox prepare the base report. Actions and diagrams stay on demand.",
     "new.technical": "Upload privacy",
     "new.technicalCopy": "Audio is uploaded directly to the configured storage",
     "new.step.detail": "Details",
@@ -352,14 +376,17 @@ export const dictionaries = {
     "new.audioLanguageHelp": "ISO-639-1 hint to improve transcription when the language is known.",
     "new.advanced": "Advanced options",
     "new.transcriptSeed": "Existing transcript (optional)",
-    "new.transcriptPlaceholder": "Paste a full transcript (min. 40 characters) to skip automatic transcription.",
+    "new.transcriptPlaceholder":
+      "Paste a full transcript (min. 40 characters) to skip automatic transcription.",
     "new.run": "Upload and analyze",
     "new.running": "Processing...",
     "new.progress": "Progress",
-    "new.progressHelp": "Analysis may take a few minutes depending on the audio length. You can keep this tab open.",
+    "new.progressHelp":
+      "Analysis may take a few minutes depending on the audio length. You can keep this tab open.",
     "new.failure": "Operation failed",
     "new.readyTitle": "Ready for analysis",
-    "new.readyCopy": "Upload a supported audio file and start the report once the details are correct.",
+    "new.readyCopy":
+      "Upload a supported audio file and start the report once the details are correct.",
     "new.retry": "Fix and retry",
     "new.unexpectedError": "Unexpected error during the flow.",
     "result.report": "Report",
@@ -388,8 +415,10 @@ export const dictionaries = {
     "result.genericError": "Unspecified error.",
     "result.unavailableForbiddenTitle": "Analysis not accessible",
     "result.unavailableMissingTitle": "Analysis not available",
-    "result.unavailableForbiddenDesc": "The link exists, but the current session does not have access to this analysis.",
-    "result.unavailableMissingDesc": "The link does not match an available analysis or it was removed.",
+    "result.unavailableForbiddenDesc":
+      "The link exists, but the current session does not have access to this analysis.",
+    "result.unavailableMissingDesc":
+      "The link does not match an available analysis or it was removed.",
     "result.backOverview": "Back to overview",
     "result.transcriptUnavailable": "Transcript is not available yet.",
     "result.calendar": "Calendar",
@@ -402,7 +431,8 @@ export const dictionaries = {
     "risk.low": "Low",
     "actions.board": "Operating board",
     "actions.plan": "Execution plan",
-    "actions.planHelp": "Priorities, owners and due dates in a view built to decide what should happen next.",
+    "actions.planHelp":
+      "Priorities, owners and due dates in a view built to decide what should happen next.",
     "actions.open": "Open",
     "actions.inProgress": "In progress",
     "actions.blocked": "Blocked",
@@ -444,7 +474,8 @@ export const dictionaries = {
     "transcript.audioError": "Unable to load audio.",
     "transcript.requestError": "Request failed.",
     "transcript.unavailableTitle": "Transcript not available",
-    "transcript.unavailableDesc": "This job does not yet include the transcript in the persisted result. If you just updated the code, restart the worker process and run the analysis again: only jobs completed after the restart include transcript, participants and timestamped segments.",
+    "transcript.unavailableDesc":
+      "This job does not yet include the transcript in the persisted result. If you just updated the code, restart the worker process and run the analysis again: only jobs completed after the restart include transcript, participants and timestamped segments.",
     "transcript.participants": "Participants",
     "transcript.audioHint": "Click a segment to jump to the matching point in the recording.",
     "transcript.searchLabel": "Search original timestamped segments",
@@ -460,7 +491,8 @@ export const dictionaries = {
     "transcript.cleaned": "Cleaned",
     "transcript.fullAria": "Full transcript",
     "transcript.askTitle": "Questions about the content",
-    "transcript.askHelp": "Answer based on the transcript and a brief excerpt. This uses the server-side model endpoint.",
+    "transcript.askHelp":
+      "Answer based on the transcript and a brief excerpt. This uses the server-side model endpoint.",
     "transcript.askPlaceholder": "E.g. What decisions were made about the budget?",
     "transcript.askLoading": "Processing…",
     "transcript.ask": "Ask",
@@ -477,8 +509,10 @@ export const dictionaries = {
     "result.visualWorkspace": "Visual workspace",
     "result.executionWorkspace": "Execution board",
     "result.sourceWorkspace": "Source content",
-    "result.diagramsDesc": "Navigable maps and an interactive canvas to explore themes, decisions and relationships.",
-    "result.actionsDesc": "Operating board with filters, drag-and-drop and server-side persisted status.",
+    "result.diagramsDesc":
+      "Navigable maps and an interactive canvas to explore themes, decisions and relationships.",
+    "result.actionsDesc":
+      "Operating board with filters, drag-and-drop and server-side persisted status.",
     "result.transcriptDesc": "Audio, segments, search and questions on the source content.",
     "result.exportMdDesc": "Complete document with brief, diagrams and actions.",
     "result.briefDesc": "Executive summary only, ready to paste.",
@@ -492,8 +526,10 @@ export const dictionaries = {
     "result.retry": "Retry",
     "result.diagramsReady": "Diagrams ready.",
     "result.actionsReady": "Actions ready.",
-    "result.diagramsEmpty": "Diagrams are not created automatically: click when you want a visual view of the content.",
-    "result.actionsEmpty": "The action plan is not created automatically: click when you want to turn the brief into execution.",
+    "result.diagramsEmpty":
+      "Diagrams are not created automatically: click when you want a visual view of the content.",
+    "result.actionsEmpty":
+      "The action plan is not created automatically: click when you want to turn the brief into execution.",
     "label.sentiment": "Sentiment",
     "label.actions": "Actions",
     "label.diagrams": "Diagrams",
@@ -573,8 +609,8 @@ export const dictionaries = {
     "diagram.branchOpened": "Branch opened",
     "diagram.nodeOpened": "Node opened",
     "diagram.notRenderable": "Diagram not renderable",
-    "diagram.debugCode": "Diagram source"
-  }
+    "diagram.debugCode": "Diagram source",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof dictionaries.en;

@@ -13,14 +13,16 @@ export function middleware(request: NextRequest) {
   response.headers.set("Permissions-Policy", "microphone=(self), camera=()");
   const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval'" : "'self' 'unsafe-inline'";
   const storageSrc = "http: https:";
-  const connectSrc = isDev ? `'self' ws: wss: https://api.openai.com ${storageSrc}` : `'self' https://api.openai.com ${storageSrc}`;
+  const connectSrc = isDev
+    ? `'self' ws: wss: https://api.openai.com ${storageSrc}`
+    : `'self' https://api.openai.com ${storageSrc}`;
   response.headers.set(
     "Content-Security-Policy",
-    `default-src 'self'; connect-src ${connectSrc}; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: ${storageSrc};`
+    `default-src 'self'; connect-src ${connectSrc}; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: ${storageSrc};`,
   );
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

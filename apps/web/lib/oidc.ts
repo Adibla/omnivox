@@ -73,7 +73,10 @@ export async function buildAuthorizationUrl(input: { state: string; nonce: strin
   return url;
 }
 
-export async function exchangeCodeForIdentity(input: { code: string; expectedNonce: string }): Promise<{
+export async function exchangeCodeForIdentity(input: {
+  code: string;
+  expectedNonce: string;
+}): Promise<{
   identity: AuthIdentity;
   idToken: string;
   refreshToken?: string;
@@ -84,21 +87,27 @@ export async function exchangeCodeForIdentity(input: { code: string; expectedNon
   const response = await fetch(discovery.token_endpoint, {
     method: "POST",
     headers: {
-      "content-type": "application/x-www-form-urlencoded"
+      "content-type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code: input.code,
       client_id: env.KEYCLOAK_CLIENT_ID ?? "",
       client_secret: env.KEYCLOAK_CLIENT_SECRET ?? "",
-      redirect_uri: callbackUrl()
-    })
+      redirect_uri: callbackUrl(),
+    }),
   });
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`OIDC token exchange failed with HTTP ${response.status}: ${detail.slice(0, 300)}`);
+    throw new Error(
+      `OIDC token exchange failed with HTTP ${response.status}: ${detail.slice(0, 300)}`,
+    );
   }
-  const token = (await response.json()) as { id_token?: string; refresh_token?: string; refresh_expires_in?: number };
+  const token = (await response.json()) as {
+    id_token?: string;
+    refresh_token?: string;
+    refresh_expires_in?: number;
+  };
   if (!token.id_token) {
     throw new Error("OIDC provider did not return an id_token.");
   }
@@ -110,15 +119,17 @@ export async function exchangeCodeForIdentity(input: { code: string; expectedNon
   return {
     idToken: token.id_token,
     refreshToken: token.refresh_token,
-    refreshExpiresAt: token.refresh_expires_in ? Date.now() + token.refresh_expires_in * 1000 : undefined,
+    refreshExpiresAt: token.refresh_expires_in
+      ? Date.now() + token.refresh_expires_in * 1000
+      : undefined,
     identity: {
       issuer: claims.iss,
       subject: claims.sub,
       tenantId,
       email: claims.email,
       name: claims.name ?? claims.preferred_username,
-      expiresAt: claims.exp * 1000
-    }
+      expiresAt: claims.exp * 1000,
+    },
   };
 }
 
@@ -133,20 +144,24 @@ export async function refreshOidcIdentity(input: { refreshToken: string }): Prom
   const response = await fetch(discovery.token_endpoint, {
     method: "POST",
     headers: {
-      "content-type": "application/x-www-form-urlencoded"
+      "content-type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: input.refreshToken,
       client_id: env.KEYCLOAK_CLIENT_ID ?? "",
-      client_secret: env.KEYCLOAK_CLIENT_SECRET ?? ""
-    })
+      client_secret: env.KEYCLOAK_CLIENT_SECRET ?? "",
+    }),
   });
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(`OIDC refresh failed with HTTP ${response.status}: ${detail.slice(0, 300)}`);
   }
-  const token = (await response.json()) as { id_token?: string; refresh_token?: string; refresh_expires_in?: number };
+  const token = (await response.json()) as {
+    id_token?: string;
+    refresh_token?: string;
+    refresh_expires_in?: number;
+  };
   if (!token.id_token) {
     throw new Error("OIDC provider did not return an id_token during refresh.");
   }
@@ -158,15 +173,17 @@ export async function refreshOidcIdentity(input: { refreshToken: string }): Prom
   return {
     idToken: token.id_token,
     refreshToken: token.refresh_token ?? input.refreshToken,
-    refreshExpiresAt: token.refresh_expires_in ? Date.now() + token.refresh_expires_in * 1000 : undefined,
+    refreshExpiresAt: token.refresh_expires_in
+      ? Date.now() + token.refresh_expires_in * 1000
+      : undefined,
     identity: {
       issuer: claims.iss,
       subject: claims.sub,
       tenantId,
       email: claims.email,
       name: claims.name ?? claims.preferred_username,
-      expiresAt: claims.exp * 1000
-    }
+      expiresAt: claims.exp * 1000,
+    },
   };
 }
 
@@ -218,7 +235,10 @@ async function verifyIdToken(idToken: string, expectedNonce?: string): Promise<I
   const verify = createVerify("RSA-SHA256");
   verify.update(`${rawHeader}.${rawPayload}`);
   verify.end();
-  const ok = verify.verify(createPublicKey({ key: jwk, format: "jwk" }), base64urlToBuffer(rawSignature));
+  const ok = verify.verify(
+    createPublicKey({ key: jwk, format: "jwk" }),
+    base64urlToBuffer(rawSignature),
+  );
   if (!ok) {
     throw new Error("Invalid id_token signature.");
   }
@@ -234,7 +254,9 @@ async function findSigningKey(kid?: string) {
     }
     jwksCache = (await response.json()) as { keys: Jwk[] };
   }
-  const key = jwksCache.keys.find((candidate) => candidate.kty === "RSA" && (!kid || candidate.kid === kid));
+  const key = jwksCache.keys.find(
+    (candidate) => candidate.kty === "RSA" && (!kid || candidate.kid === kid),
+  );
   if (!key) {
     throw new Error("OIDC signing key not found.");
   }

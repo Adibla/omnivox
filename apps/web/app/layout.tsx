@@ -8,16 +8,17 @@ import { I18nProvider } from "@/components/i18n-provider";
 const geistSans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap"
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "OmniVox",
-  description: "Self-hostable meeting audio analysis: transcription, summaries, diagrams, and actions."
+  description:
+    "Self-hostable meeting audio analysis: transcription, summaries, diagrams, and actions.",
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {

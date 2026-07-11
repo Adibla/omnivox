@@ -8,10 +8,11 @@ export function getMermaidThemeConfig(): {
   theme: "base";
   themeVariables: Record<string, string>;
 } {
-  const isDark = typeof document === "undefined" || document.documentElement.classList.contains("dark");
+  const isDark =
+    typeof document === "undefined" || document.documentElement.classList.contains("dark");
   return {
     theme: "base",
-    themeVariables: isDark ? darkThemeVariables : lightThemeVariables
+    themeVariables: isDark ? darkThemeVariables : lightThemeVariables,
   };
 }
 
@@ -63,7 +64,7 @@ const darkThemeVariables = {
   doneTaskBorderColor: "#2d6a4f",
   critBorderColor: "#ef4444",
   critBkgColor: "#3f1d1d",
-  fontFamily: "ui-sans-serif, system-ui, sans-serif"
+  fontFamily: "ui-sans-serif, system-ui, sans-serif",
 };
 
 const lightThemeVariables = {
@@ -113,7 +114,7 @@ const lightThemeVariables = {
   doneTaskBkgColor: "#dcfce7",
   doneTaskBorderColor: "#22c55e",
   critBorderColor: "#dc2626",
-  critBkgColor: "#fee2e2"
+  critBkgColor: "#fee2e2",
 };
 
 /** Full `mermaid.initialize` options: theme + layout readability (flowchart / mindmap). */
@@ -127,12 +128,12 @@ export function getMermaidInitializeOptions(): MermaidConfig {
       nodeSpacing: 56,
       rankSpacing: 56,
       useMaxWidth: true,
-      wrappingWidth: 200
+      wrappingWidth: 200,
     },
     mindmap: {
       padding: 20,
       maxNodeWidth: 240,
-      useMaxWidth: true
-    }
+      useMaxWidth: true,
+    },
   };
 }

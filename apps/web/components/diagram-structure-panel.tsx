@@ -22,7 +22,7 @@ export function DiagramStructurePanel({
   searchQuery,
   activeKey,
   onSelectKey,
-  onSelectLabel
+  onSelectLabel,
 }: DiagramStructurePanelProps) {
   const { t } = useI18n();
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set(["mind-0"]));
@@ -34,7 +34,9 @@ export function DiagramStructurePanel({
       return semanticTree;
     }
     const includeMatches = (node: DiagramSemanticNode): DiagramSemanticNode | null => {
-      const children = node.children.map(includeMatches).filter((n): n is DiagramSemanticNode => Boolean(n));
+      const children = node.children
+        .map(includeMatches)
+        .filter((n): n is DiagramSemanticNode => Boolean(n));
       if (node.label.toLowerCase().includes(q) || children.length > 0) {
         return { ...node, children };
       }
@@ -74,7 +76,9 @@ export function DiagramStructurePanel({
               <span
                 className={cn(
                   "flex h-5 w-5 shrink-0 items-center justify-center rounded border text-[10px]",
-                  hasChildren ? "border-primary/35 bg-primary/15 text-primary" : "border-border/60 bg-background/60 text-muted-foreground"
+                  hasChildren
+                    ? "border-primary/35 bg-primary/15 text-primary"
+                    : "border-border/60 bg-background/60 text-muted-foreground",
                 )}
               >
                 {hasChildren ? (isOpen ? "−" : "+") : "•"}
@@ -105,11 +109,17 @@ export function DiagramStructurePanel({
         {hasSemanticTree ? (
           <div className="mb-3 rounded-lg border border-border/50 bg-background/45 p-2">
             <div className="mb-2 flex items-center justify-between gap-2 px-1">
-              <p className="text-[11px] font-medium text-foreground">{t("diagram.interactiveMap")}</p>
+              <p className="text-[11px] font-medium text-foreground">
+                {t("diagram.interactiveMap")}
+              </p>
               <span className="text-[10px] text-muted-foreground">{t("diagram.clickToOpen")}</span>
             </div>
-            {visibleTree.length > 0 ? renderTree(visibleTree) : (
-              <div className="px-2 py-3 text-center text-xs text-muted-foreground">{t("diagram.noBranch")}</div>
+            {visibleTree.length > 0 ? (
+              renderTree(visibleTree)
+            ) : (
+              <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+                {t("diagram.noBranch")}
+              </div>
             )}
           </div>
         ) : null}
@@ -124,7 +134,7 @@ export function DiagramStructurePanel({
                   "h-auto min-h-10 w-full justify-start gap-2 whitespace-normal rounded-md px-2.5 py-2 text-left text-xs font-normal leading-snug",
                   activeKey === item.key
                     ? "border-primary/30 bg-primary/15 text-foreground"
-                    : "text-muted-foreground hover:bg-background/70 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-background/70 hover:text-foreground",
                 )}
                 onClick={() => onSelectKey(item.key)}
               >
@@ -133,7 +143,7 @@ export function DiagramStructurePanel({
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded border text-[10px] tabular-nums",
                     activeKey === item.key
                       ? "border-primary/35 bg-primary/15 text-primary"
-                      : "border-border/60 bg-background/60 text-muted-foreground"
+                      : "border-border/60 bg-background/60 text-muted-foreground",
                   )}
                 >
                   {index + 1}

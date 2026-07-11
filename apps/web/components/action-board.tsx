@@ -5,14 +5,17 @@ import type { AnalysisOutput } from "@omnivox/shared";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n-provider";
 import { Input } from "@/components/ui/input";
-import { useOptimisticActionStatuses, type ActionStatus } from "@/hooks/use-optimistic-action-statuses";
+import {
+  useOptimisticActionStatuses,
+  type ActionStatus,
+} from "@/hooks/use-optimistic-action-statuses";
 import { useSessionCsrf } from "@/hooks/use-session-csrf";
 import {
   ActionDetail,
   ActionLane,
   Metric,
   dueState,
-  type TaggedAction
+  type TaggedAction,
 } from "@/components/action-board-parts";
 
 type ActionBoardProps = {
@@ -37,7 +40,7 @@ function compareActions(a: TaggedAction, b: TaggedAction): number {
 }
 
 export function ActionBoard({ actions, jobId }: ActionBoardProps) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { csrfToken, ready: csrfReady } = useSessionCsrf();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<QuickFilter>("all");
@@ -49,9 +52,9 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
     () =>
       actions.map((action, index) => ({
         action,
-        stableId: action.id ?? `action-${index}`
+        stableId: action.id ?? `action-${index}`,
       })),
-    [actions]
+    [actions],
   );
 
   const { syncingMap, syncError, setStatus, statusFor } = useOptimisticActionStatuses({
@@ -61,12 +64,16 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
     csrfToken,
     messages: {
       sessionNotReady: t("actions.sessionNotReady"),
-      statusNotSaved: t("actions.statusNotSaved")
-    }
+      statusNotSaved: t("actions.statusNotSaved"),
+    },
   });
 
   useEffect(() => {
-    setSelectedId((current) => (current && tagged.some((row) => row.stableId === current) ? current : tagged[0]?.stableId ?? "action-0"));
+    setSelectedId((current) =>
+      current && tagged.some((row) => row.stableId === current)
+        ? current
+        : (tagged[0]?.stableId ?? "action-0"),
+    );
   }, [jobId, tagged]);
 
   const stats = useMemo(() => {
@@ -79,7 +86,7 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
       done: tagged.filter((row) => statusFor(row.stableId) === "done").length,
       high: open.filter((row) => row.action.priority === "high").length,
       risk: open.filter((row) => row.action.risk === "high").length,
-      due: open.filter((row) => ["overdue", "soon"].includes(dueState(row.action.dueDate))).length
+      due: open.filter((row) => ["overdue", "soon"].includes(dueState(row.action.dueDate))).length,
     };
   }, [tagged, statusFor]);
 
@@ -118,12 +125,13 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
     () =>
       (["todo", "in_progress", "blocked", "done"] as const).map((status) => ({
         status,
-        rows: filtered.filter((row) => statusFor(row.stableId) === status)
+        rows: filtered.filter((row) => statusFor(row.stableId) === status),
       })),
-    [filtered, statusFor]
+    [filtered, statusFor],
   );
 
-  const selected = filtered.find((row) => row.stableId === selectedId) ?? filtered[0] ?? tagged[0] ?? null;
+  const selected =
+    filtered.find((row) => row.stableId === selectedId) ?? filtered[0] ?? tagged[0] ?? null;
   const progress = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
 
   if (tagged.length === 0) {
@@ -136,21 +144,32 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
             <p className="ui-overline mb-2 text-[10px]">{t("actions.board")}</p>
-            <h3 className="text-xl font-semibold leading-tight text-foreground">{t("actions.plan")}</h3>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              {t("actions.planHelp")}
-            </p>
+            <h3 className="text-xl font-semibold leading-tight text-foreground">
+              {t("actions.plan")}
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("actions.planHelp")}</p>
           </div>
           <div className="grid min-w-[min(100%,520px)] grid-cols-2 gap-2 sm:grid-cols-4">
             <Metric label={t("actions.open")} value={stats.open} />
             <Metric label={t("actions.inProgress")} value={stats.doing} />
-            <Metric label={t("actions.blocked")} value={stats.blocked} tone={stats.blocked > 0 ? "warn" : "normal"} />
-            <Metric label={t("actions.highPriority")} value={stats.high} tone={stats.high > 0 ? "hot" : "normal"} />
+            <Metric
+              label={t("actions.blocked")}
+              value={stats.blocked}
+              tone={stats.blocked > 0 ? "warn" : "normal"}
+            />
+            <Metric
+              label={t("actions.highPriority")}
+              value={stats.high}
+              tone={stats.high > 0 ? "hot" : "normal"}
+            />
           </div>
         </div>
 
         <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${progress}%` }}
+          />
         </div>
 
         <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -168,7 +187,7 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
               ["high", t("actions.filterHigh")],
               ["risk", t("actions.filterRisk")],
               ["due", t("actions.filterDue")],
-              ["unassigned-date", t("actions.filterNoDue")]
+              ["unassigned-date", t("actions.filterNoDue")],
             ].map(([id, label]) => (
               <Button
                 key={id}
@@ -189,46 +208,54 @@ export function ActionBoard({ actions, jobId }: ActionBoardProps) {
       <div>
         {selected ? (
           <div className="border-b border-border/60 bg-muted/10 p-3">
-            <ActionDetail row={selected} status={statusFor(selected.stableId)} syncing={Boolean(syncingMap[selected.stableId])} onStatus={setStatus} compact />
+            <ActionDetail
+              row={selected}
+              status={statusFor(selected.stableId)}
+              syncing={Boolean(syncingMap[selected.stableId])}
+              onStatus={setStatus}
+              compact
+            />
           </div>
         ) : null}
 
         <div className="min-w-0 p-3">
           <div className="-mx-3 overflow-x-auto px-3 pb-2">
-          <div className="flex min-w-max gap-3 xl:min-w-0">
-            {lanes.map((lane) => (
-              <ActionLane
-                key={lane.status}
-                dropTarget={dropTarget}
-                lane={lane}
-                selectedId={selected?.stableId ?? null}
-                syncingMap={syncingMap}
-                statusFor={statusFor}
-                onDragOver={setDropTarget}
-                onDragEnd={() => {
-                  setDraggedId(null);
-                  setDropTarget(null);
-                }}
-                onDragStart={(id) => {
-                  setDraggedId(id);
-                  setSelectedId(id);
-                }}
-                onDrop={(status) => {
-                  if (draggedId) {
-                    setStatus(draggedId, status);
-                    setSelectedId(draggedId);
-                  }
-                  setDraggedId(null);
-                  setDropTarget(null);
-                }}
-                onSelect={setSelectedId}
-                onStatus={setStatus}
-              />
-            ))}
-          </div>
+            <div className="flex min-w-max gap-3 xl:min-w-0">
+              {lanes.map((lane) => (
+                <ActionLane
+                  key={lane.status}
+                  dropTarget={dropTarget}
+                  lane={lane}
+                  selectedId={selected?.stableId ?? null}
+                  syncingMap={syncingMap}
+                  statusFor={statusFor}
+                  onDragOver={setDropTarget}
+                  onDragEnd={() => {
+                    setDraggedId(null);
+                    setDropTarget(null);
+                  }}
+                  onDragStart={(id) => {
+                    setDraggedId(id);
+                    setSelectedId(id);
+                  }}
+                  onDrop={(status) => {
+                    if (draggedId) {
+                      setStatus(draggedId, status);
+                      setSelectedId(draggedId);
+                    }
+                    setDraggedId(null);
+                    setDropTarget(null);
+                  }}
+                  onSelect={setSelectedId}
+                  onStatus={setStatus}
+                />
+              ))}
+            </div>
           </div>
           {filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t("actions.noneFiltered")}</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              {t("actions.noneFiltered")}
+            </p>
           ) : null}
         </div>
       </div>

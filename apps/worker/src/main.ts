@@ -11,8 +11,8 @@ function logInfo(event: string, payload: Record<string, unknown> = {}) {
       level: "info",
       at: new Date().toISOString(),
       event,
-      payload
-    })}\n`
+      payload,
+    })}\n`,
   );
 }
 
@@ -42,8 +42,8 @@ function createHealthServer() {
         JSON.stringify({
           ok: true,
           service: "omnivox-worker",
-          timestamp: new Date().toISOString()
-        })
+          timestamp: new Date().toISOString(),
+        }),
       );
       return;
     }
@@ -55,8 +55,8 @@ function createHealthServer() {
         JSON.stringify({
           ok: ready,
           service: "omnivox-worker",
-          timestamp: new Date().toISOString()
-        })
+          timestamp: new Date().toISOString(),
+        }),
       );
       return;
     }

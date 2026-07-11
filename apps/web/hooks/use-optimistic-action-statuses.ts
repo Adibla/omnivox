@@ -27,7 +27,7 @@ export function useOptimisticActionStatuses({
   jobId,
   csrfReady,
   csrfToken,
-  messages
+  messages,
 }: UseOptimisticActionStatusesInput) {
   const [statusMap, setStatusMap] = useState<Record<string, ActionStatus>>({});
   const [syncingMap, setSyncingMap] = useState<Record<string, boolean>>({});
@@ -39,13 +39,17 @@ export function useOptimisticActionStatuses({
 
   const actionSignature = useMemo(() => actions.map(actionId).join("|"), [actions]);
   const backendStatusSignature = useMemo(
-    () => actions.map((action, index) => `${actionId(action, index)}:${action.status ?? "todo"}`).join("|"),
-    [actions]
+    () =>
+      actions
+        .map((action, index) => `${actionId(action, index)}:${action.status ?? "todo"}`)
+        .join("|"),
+    [actions],
   );
 
   useEffect(() => {
+    const timers = releaseTimersRef.current;
     return () => {
-      Object.values(releaseTimersRef.current).forEach((timer) => window.clearTimeout(timer));
+      Object.values(timers).forEach((timer) => window.clearTimeout(timer));
     };
   }, []);
 
@@ -74,41 +78,56 @@ export function useOptimisticActionStatuses({
         jobId,
         stableId,
         status,
-        csrfToken
-      }).then(async (response) => {
-        if (!isLatestRequest(stableId, requestSeq)) {
-          return;
-        }
-        if (!response.ok) {
-          rollback(stableId, previous);
-          const payload = await response.json().catch(() => null);
-          setSyncError(payload?.message ?? messages.statusNotSaved);
-          return;
-        }
-        releaseSyncAfterSuccess(stableId);
-      }).catch(() => {
-        if (!isLatestRequest(stableId, requestSeq)) {
-          return;
-        }
-        rollback(stableId, previous);
-        setSyncError(messages.statusNotSaved);
-      });
+        csrfToken,
+      })
+        .then(async (response) => {
+          if (!isLatestRequest(stableId, requestSeq)) {
+            return;
+          }
+          if (!response.ok) {
+            rollbackRef.current(stableId, previous);
+            const payload = await response.json().catch(() => null);
+            setSyncError(payload?.message ?? messages.statusNotSaved);
+            return;
+          }
+          releaseSyncAfterSuccessRef.current(stableId);
+        })
+        .catch(() => {
+          if (!isLatestRequest(stableId, requestSeq)) {
+            return;
+          }
+          rollbackRef.current(stableId, previous);
+          setSyncError(messages.statusNotSaved);
+        });
     },
-    [csrfReady, csrfToken, jobId, messages.sessionNotReady, messages.statusNotSaved]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rollback and releaseSyncAfterSuccess are reached via stable refs (rollbackRef/releaseSyncAfterSuccessRef) to avoid re-creating this callback on every render.
+    [csrfReady, csrfToken, jobId, messages.sessionNotReady, messages.statusNotSaved],
   );
 
   const statusFor = useCallback((id: string): ActionStatus => statusMap[id] ?? "todo", [statusMap]);
+
+  // Stable refs to the functions defined below. These let `setStatus`'s
+  // useCallback close over the latest implementation without invalidating its
+  // identity on every render (the alternative — wrapping helpers in their own
+  // useCallback — would force an artificial render-time split that doesn't fit
+  // this hook's flow).
+  const rollbackRef = useRef<(stableId: string, previous: ActionStatus) => void>(() => {});
+  const releaseSyncAfterSuccessRef = useRef<(stableId: string) => void>(() => {});
+  rollbackRef.current = rollback;
+  releaseSyncAfterSuccessRef.current = releaseSyncAfterSuccess;
 
   return {
     statusMap,
     syncingMap,
     syncError,
     setStatus,
-    statusFor
+    statusFor,
   };
 
   function mergeBackendStatuses(nextActions: AnalysisOutput["actions"]) {
-    const incoming = Object.fromEntries(nextActions.map((action, index) => [actionId(action, index), action.status ?? "todo"])) as Record<string, ActionStatus>;
+    const incoming = Object.fromEntries(
+      nextActions.map((action, index) => [actionId(action, index), action.status ?? "todo"]),
+    ) as Record<string, ActionStatus>;
     setStatusMap((current) => {
       const next = Object.fromEntries(
         nextActions.map((action, index) => {
@@ -116,13 +135,18 @@ export function useOptimisticActionStatuses({
           const currentStatus = current[id];
           const isSyncing = syncingMapRef.current[id];
           return [id, isSyncing && currentStatus ? currentStatus : incoming[id]];
-        })
+        }),
       ) as Record<string, ActionStatus>;
       statusMapRef.current = next;
       return next;
     });
     setSyncingMap((current) => {
-      const next = Object.fromEntries(nextActions.map((action, index) => [actionId(action, index), current[actionId(action, index)] ?? false]));
+      const next = Object.fromEntries(
+        nextActions.map((action, index) => [
+          actionId(action, index),
+          current[actionId(action, index)] ?? false,
+        ]),
+      );
       syncingMapRef.current = next;
       return next;
     });
@@ -184,6 +208,6 @@ function persistStatus(input: {
   return fetch(`/api/v1/pipeline/${input.jobId}/actions/${encodeURIComponent(input.stableId)}`, {
     method: "PATCH",
     headers: { "content-type": "application/json", "x-csrf-token": input.csrfToken },
-    body: JSON.stringify({ status: input.status })
+    body: JSON.stringify({ status: input.status }),
   });
 }

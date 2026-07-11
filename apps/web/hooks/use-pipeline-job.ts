@@ -33,7 +33,7 @@ function isTerminalState(job: PipelineJobResponse): boolean {
 
 export function usePipelineJob(
   jobId: string | null,
-  options?: { pollMs?: number; enabled?: boolean }
+  options?: { pollMs?: number; enabled?: boolean },
 ) {
   const [job, setJob] = useState<PipelineJobResponse | null>(null);
   const [pollError, setPollError] = useState<PipelinePollError | null>(null);
@@ -89,7 +89,9 @@ export function usePipelineJob(
         return payload;
       } catch (e) {
         if (!cancelled) {
-          setPollError({ message: e instanceof Error ? e.message : "Errore di rete durante il polling." });
+          setPollError({
+            message: e instanceof Error ? e.message : "Errore di rete durante il polling.",
+          });
           setIsLoading(false);
         }
         return null;

@@ -15,12 +15,8 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
-      "redirectUris": [
-        "http://localhost:3000/api/v1/auth/callback"
-      ],
-      "webOrigins": [
-        "http://localhost:3000"
-      ],
+      "redirectUris": ["http://localhost:3000/api/v1/auth/callback"],
+      "webOrigins": ["http://localhost:3000"],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:3000"
       },
@@ -51,9 +47,7 @@
       "enabled": true,
       "emailVerified": true,
       "attributes": {
-        "tenant_id": [
-          "acme"
-        ]
+        "tenant_id": ["acme"]
       },
       "credentials": [
         {
@@ -71,9 +65,7 @@
       "enabled": true,
       "emailVerified": true,
       "attributes": {
-        "tenant_id": [
-          "acme"
-        ]
+        "tenant_id": ["acme"]
       },
       "credentials": [
         {

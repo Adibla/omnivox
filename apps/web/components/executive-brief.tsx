@@ -35,7 +35,7 @@ export function ExecutiveBrief({ markdown }: ExecutiveBriefProps) {
                   {children}
                 </a>
               );
-            }
+            },
           }}
         >
           {markdown}

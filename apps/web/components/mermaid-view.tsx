@@ -14,9 +14,13 @@ import {
   DIAGRAM_SCALE_MAX,
   DIAGRAM_SCALE_MIN,
   fitDiagramToContainer,
-  panAfterZoomAtPoint
+  panAfterZoomAtPoint,
 } from "@/lib/diagram-viewport-math";
-import { buildDiagramNodeInventory, findDiagramNodeByKey, findDiagramNodeByLabel } from "@/lib/diagram-node-inventory";
+import {
+  buildDiagramNodeInventory,
+  findDiagramNodeByKey,
+  findDiagramNodeByLabel,
+} from "@/lib/diagram-node-inventory";
 import type { DiagramNodeInventoryItem } from "@/lib/diagram-node-inventory";
 import { parseDiagramSemanticTree } from "@/lib/diagram-semantic-tree";
 import { copyToClipboard } from "@/lib/integrations-export";
@@ -46,7 +50,8 @@ function findNodeGroup(el: EventTarget | null): SVGGElement | null {
 
 function collectTextNodes(root: SVGSVGElement): (SVGTextElement | SVGTSpanElement)[] {
   return Array.from(root.querySelectorAll("text, tspan")).filter(
-    (n): n is SVGTextElement | SVGTSpanElement => n instanceof SVGTextElement || n instanceof SVGTSpanElement
+    (n): n is SVGTextElement | SVGTSpanElement =>
+      n instanceof SVGTextElement || n instanceof SVGTSpanElement,
   );
 }
 
@@ -120,8 +125,10 @@ async function svgToPngBlob(svg: SVGSVGElement): Promise<Blob | null> {
     const img = new Image();
     img.onload = () => {
       const vb = svg.viewBox;
-      const w = vb?.baseVal?.width && vb.baseVal.width > 0 ? vb.baseVal.width : img.naturalWidth || 800;
-      const h = vb?.baseVal?.height && vb.baseVal.height > 0 ? vb.baseVal.height : img.naturalHeight || 600;
+      const w =
+        vb?.baseVal?.width && vb.baseVal.width > 0 ? vb.baseVal.width : img.naturalWidth || 800;
+      const h =
+        vb?.baseVal?.height && vb.baseVal.height > 0 ? vb.baseVal.height : img.naturalHeight || 600;
       const canvas = document.createElement("canvas");
       const dpr = Math.min(2, typeof window !== "undefined" ? window.devicePixelRatio || 1 : 2);
       canvas.width = Math.ceil(w * dpr);
@@ -142,7 +149,7 @@ async function svgToPngBlob(svg: SVGSVGElement): Promise<Blob | null> {
           resolve(png);
         },
         "image/png",
-        0.92
+        0.92,
       );
     };
     img.onerror = () => {
@@ -174,7 +181,9 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
   const [structureActiveKey, setStructureActiveKey] = useState<string | null>(null);
   const [themeRevision, setThemeRevision] = useState(0);
   const semanticTree = useMemo(() => parseDiagramSemanticTree(code), [code]);
-  const [viewMode, setViewMode] = useState<"explore" | "canvas">(() => (semanticTree.length > 0 ? "explore" : "canvas"));
+  const [viewMode, setViewMode] = useState<"explore" | "canvas">(() =>
+    semanticTree.length > 0 ? "explore" : "canvas",
+  );
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) {
@@ -206,35 +215,38 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
     startClientY: 0,
     startTx: 0,
     startTy: 0,
-    moved: false
+    moved: false,
   });
   const skipClickRef = useRef(false);
 
-  const focusNode = useCallback((svg: SVGSVGElement, node: SVGGElement, key: string | null = null) => {
-    const viewport = viewportRef.current;
-    if (!viewport) {
-      return;
-    }
-    setIsolatedNode(svg, node);
-    setStructureActiveKey(key ?? node.getAttribute("data-omni-diagram-key") ?? null);
-    let bbox: DOMRect;
-    try {
-      bbox = node.getBBox();
-    } catch {
-      return;
-    }
-    const { width: cw, height: ch } = viewport.getBoundingClientRect();
-    const nextScale = clampDiagramScale(Math.max(scale, 1.18));
-    const pan = centerBBoxInViewport({
-      bbox,
-      containerWidth: cw,
-      containerHeight: ch,
-      scale: nextScale
-    });
-    setScale(nextScale);
-    setTx(pan.tx);
-    setTy(pan.ty);
-  }, [scale]);
+  const focusNode = useCallback(
+    (svg: SVGSVGElement, node: SVGGElement, key: string | null = null) => {
+      const viewport = viewportRef.current;
+      if (!viewport) {
+        return;
+      }
+      setIsolatedNode(svg, node);
+      setStructureActiveKey(key ?? node.getAttribute("data-omni-diagram-key") ?? null);
+      let bbox: DOMRect;
+      try {
+        bbox = node.getBBox();
+      } catch {
+        return;
+      }
+      const { width: cw, height: ch } = viewport.getBoundingClientRect();
+      const nextScale = clampDiagramScale(Math.max(scale, 1.18));
+      const pan = centerBBoxInViewport({
+        bbox,
+        containerWidth: cw,
+        containerHeight: ch,
+        scale: nextScale,
+      });
+      setScale(nextScale);
+      setTx(pan.tx);
+      setTy(pan.ty);
+    },
+    [scale],
+  );
 
   const applyViewportFit = useCallback(() => {
     const viewport = viewportRef.current;
@@ -253,7 +265,12 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       return;
     }
     const { width: cw, height: ch } = viewport.getBoundingClientRect();
-    const next = fitDiagramToContainer({ bbox, containerWidth: cw, containerHeight: ch, padding: 20 });
+    const next = fitDiagramToContainer({
+      bbox,
+      containerWidth: cw,
+      containerHeight: ch,
+      padding: 20,
+    });
     setScale(next.scale);
     setTx(next.tx);
     setTy(next.ty);
@@ -267,7 +284,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: "strict",
-          ...getMermaidInitializeOptions()
+          ...getMermaidInitializeOptions(),
         });
         const { svg: nextSvg } = await mermaid.render(`diagram-${id}`, normalized);
         if (!cancelled) {
@@ -327,7 +344,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
         tx,
         ty,
         scale,
-        nextScale
+        nextScale,
       });
       setScale(nextScale);
       setTx(pan.tx);
@@ -376,21 +393,24 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const onPointerDownPan = useCallback((e: React.PointerEvent) => {
-    if (e.button !== 0) {
-      return;
-    }
-    e.currentTarget.setPointerCapture(e.pointerId);
-    panRef.current = {
-      active: true,
-      pointerId: e.pointerId,
-      startClientX: e.clientX,
-      startClientY: e.clientY,
-      startTx: tx,
-      startTy: ty,
-      moved: false
-    };
-  }, [tx, ty]);
+  const onPointerDownPan = useCallback(
+    (e: React.PointerEvent) => {
+      if (e.button !== 0) {
+        return;
+      }
+      e.currentTarget.setPointerCapture(e.pointerId);
+      panRef.current = {
+        active: true,
+        pointerId: e.pointerId,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        startTx: tx,
+        startTy: ty,
+        moved: false,
+      };
+    },
+    [tx, ty],
+  );
 
   const onPointerMovePan = useCallback((e: React.PointerEvent) => {
     const p = panRef.current;
@@ -423,34 +443,31 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
     }
   }, []);
 
-  const onClickViewport = useCallback(
-    (e: React.MouseEvent) => {
-      if (skipClickRef.current) {
-        skipClickRef.current = false;
-        return;
-      }
-      const mount = mountRef.current;
-      const svg = mount?.querySelector("svg");
-      if (!(svg instanceof SVGSVGElement)) {
-        return;
-      }
-      const node = findNodeGroup(e.target);
-      if (!node) {
-        clearIsolation(svg);
-        setStructureActiveKey(null);
-        return;
-      }
-      const already = node.classList.contains("diagram-node--isolate");
-      if (already) {
-        clearIsolation(svg);
-        setStructureActiveKey(null);
-        return;
-      }
-      setIsolatedNode(svg, node);
-      setStructureActiveKey(node.getAttribute("data-omni-diagram-key") || null);
-    },
-    []
-  );
+  const onClickViewport = useCallback((e: React.MouseEvent) => {
+    if (skipClickRef.current) {
+      skipClickRef.current = false;
+      return;
+    }
+    const mount = mountRef.current;
+    const svg = mount?.querySelector("svg");
+    if (!(svg instanceof SVGSVGElement)) {
+      return;
+    }
+    const node = findNodeGroup(e.target);
+    if (!node) {
+      clearIsolation(svg);
+      setStructureActiveKey(null);
+      return;
+    }
+    const already = node.classList.contains("diagram-node--isolate");
+    if (already) {
+      clearIsolation(svg);
+      setStructureActiveKey(null);
+      return;
+    }
+    setIsolatedNode(svg, node);
+    setStructureActiveKey(node.getAttribute("data-omni-diagram-key") || null);
+  }, []);
 
   const jumpToNodeKey = useCallback(
     (key: string) => {
@@ -465,7 +482,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       }
       focusNode(svg, g, key);
     },
-    [focusNode]
+    [focusNode],
   );
 
   const jumpToLabel = useCallback(
@@ -484,7 +501,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       focusNode(svg, g);
       setStatusLine(`${t("diagram.nodeOpened")}: ${label}`);
     },
-    [focusNode, t]
+    [focusNode, t],
   );
 
   const zoomBy = (factor: number) => {
@@ -502,7 +519,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       tx,
       ty,
       scale,
-      nextScale
+      nextScale,
     });
     setScale(nextScale);
     setTx(pan.tx);
@@ -522,7 +539,13 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       return;
     }
     const hits = applySearchHighlights(svg, search);
-    setStatusLine(hits.length ? `${hits.length} ${t("diagram.items")} ${t("diagram.highlight").toLowerCase()}` : search.trim() ? t("diagram.noNodeFound") : "");
+    setStatusLine(
+      hits.length
+        ? `${hits.length} ${t("diagram.items")} ${t("diagram.highlight").toLowerCase()}`
+        : search.trim()
+          ? t("diagram.noNodeFound")
+          : "",
+    );
   }, [search, t]);
 
   useEffect(() => {
@@ -605,7 +628,13 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
   }
 
   return (
-    <div ref={shellRef} className={cn("overflow-hidden rounded-lg border border-border/60 bg-background", isFullscreen && "min-h-screen p-4")}>
+    <div
+      ref={shellRef}
+      className={cn(
+        "overflow-hidden rounded-lg border border-border/60 bg-background",
+        isFullscreen && "min-h-screen p-4",
+      )}
+    >
       <div className="border-b border-border/60 bg-muted/20 p-3 sm:p-4">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -648,11 +677,20 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
                 </div>
               ) : null}
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={runSearch} disabled={viewMode === "explore"}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={runSearch}
+              disabled={viewMode === "explore"}
+            >
               {t("diagram.highlight")}
             </Button>
             <span className="min-h-5 text-xs text-muted-foreground" aria-live="polite">
-              {statusLine || (viewMode === "explore" ? `${semanticTree.length} ${t("diagram.roots")}` : `${structureItems.length} ${t("diagram.nodesDetected")}`)}
+              {statusLine ||
+                (viewMode === "explore"
+                  ? `${semanticTree.length} ${t("diagram.roots")}`
+                  : `${structureItems.length} ${t("diagram.nodesDetected")}`)}
             </span>
           </div>
 
@@ -681,44 +719,62 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
             ) : null}
             {viewMode === "canvas" ? (
               <>
-            <div className="flex rounded-md border border-border/70 bg-background/80 p-0.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 px-0"
-                onClick={() => zoomBy(0.9)}
-                aria-label={t("diagram.zoomOut")}
-                title={t("diagram.zoomOut")}
-              >
-                −
-              </Button>
-              <span className="flex h-8 min-w-14 items-center justify-center border-x border-border/60 px-2 text-xs font-medium tabular-nums text-muted-foreground">
-                {Math.round(scale * 100)}%
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 px-0"
-                onClick={() => zoomBy(1.1)}
-                aria-label={t("diagram.zoomIn")}
-                title={t("diagram.zoomIn")}
-              >
-                +
-              </Button>
-            </div>
-            <div className="flex rounded-md border border-border/70 bg-background/80 p-0.5">
-              <Button type="button" variant="ghost" size="sm" className="h-8" onClick={() => applyViewportFit()}>
-                {t("diagram.fitCanvas")}
-              </Button>
-              <Button type="button" variant="ghost" size="sm" className="h-8" onClick={resetView}>
-                1:1
-              </Button>
-              <Button type="button" variant="ghost" size="sm" className="h-8" onClick={toggleFullscreen}>
-                ⛶
-              </Button>
-            </div>
+                <div className="flex rounded-md border border-border/70 bg-background/80 p-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 px-0"
+                    onClick={() => zoomBy(0.9)}
+                    aria-label={t("diagram.zoomOut")}
+                    title={t("diagram.zoomOut")}
+                  >
+                    −
+                  </Button>
+                  <span className="flex h-8 min-w-14 items-center justify-center border-x border-border/60 px-2 text-xs font-medium tabular-nums text-muted-foreground">
+                    {Math.round(scale * 100)}%
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 px-0"
+                    onClick={() => zoomBy(1.1)}
+                    aria-label={t("diagram.zoomIn")}
+                    title={t("diagram.zoomIn")}
+                  >
+                    +
+                  </Button>
+                </div>
+                <div className="flex rounded-md border border-border/70 bg-background/80 p-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => applyViewportFit()}
+                  >
+                    {t("diagram.fitCanvas")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8"
+                    onClick={resetView}
+                  >
+                    1:1
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8"
+                    onClick={toggleFullscreen}
+                  >
+                    ⛶
+                  </Button>
+                </div>
               </>
             ) : null}
             <div className="flex rounded-md border border-border/70 bg-background/80 p-0.5">
@@ -728,7 +784,13 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
               <Button type="button" variant="ghost" size="sm" className="h-8" onClick={downloadSvg}>
                 SVG
               </Button>
-              <Button type="button" variant="ghost" size="sm" className="h-8" onClick={() => void downloadPng()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8"
+                onClick={() => void downloadPng()}
+              >
                 PNG
               </Button>
             </div>
@@ -747,7 +809,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
         <div
           className={cn(
             "grid min-h-0 bg-background lg:items-stretch",
-            structureItems.length > 0 && "lg:grid-cols-[minmax(230px,300px)_1fr]"
+            structureItems.length > 0 && "lg:grid-cols-[minmax(230px,300px)_1fr]",
           )}
         >
           <DiagramStructurePanel
@@ -771,7 +833,7 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
               className="absolute left-0 top-0 inline-block cursor-grab select-none active:cursor-grabbing"
               style={{
                 transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-                transformOrigin: "0 0"
+                transformOrigin: "0 0",
               }}
               onPointerDown={onPointerDownPan}
               onPointerMove={onPointerMovePan}
@@ -797,7 +859,9 @@ export function MermaidView({ code, exportBasename = "diagram" }: MermaidViewPro
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 bg-muted/15 px-4 py-2 text-[11px] text-muted-foreground">
-        <span>{viewMode === "explore" ? t("diagram.progressiveHint") : t("diagram.canvasHint")}</span>
+        <span>
+          {viewMode === "explore" ? t("diagram.progressiveHint") : t("diagram.canvasHint")}
+        </span>
         <span className="tabular-nums">
           {scale <= DIAGRAM_SCALE_MIN + 0.01 ? t("diagram.minZoom") : ""}
           {scale >= DIAGRAM_SCALE_MAX - 0.01 ? t("diagram.maxZoom") : ""}

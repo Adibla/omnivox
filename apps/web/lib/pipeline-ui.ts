@@ -14,7 +14,7 @@ export const PIPELINE_STATE_LABELS_IT: Record<PipelineState, string> = {
   preprocessing: "Organizzazione contenuto",
   reasoning: "Creazione report",
   completed: "Analisi pronta",
-  failed: "Analisi non riuscita"
+  failed: "Analisi non riuscita",
 };
 
 export const PIPELINE_STATE_LABELS_EN: Record<PipelineState, string> = {
@@ -23,10 +23,16 @@ export const PIPELINE_STATE_LABELS_EN: Record<PipelineState, string> = {
   preprocessing: "Organizing content",
   reasoning: "Creating report",
   completed: "Analysis ready",
-  failed: "Analysis failed"
+  failed: "Analysis failed",
 };
 
-const ORDER: PipelineState[] = ["queued", "transcribing", "preprocessing", "reasoning", "completed"];
+const ORDER: PipelineState[] = [
+  "queued",
+  "transcribing",
+  "preprocessing",
+  "reasoning",
+  "completed",
+];
 
 export function pipelineProgressPercent(state: PipelineState | string): number {
   if (state === "failed") {
@@ -39,8 +45,8 @@ export function pipelineProgressPercent(state: PipelineState | string): number {
   return Math.round(((idx + 1) / ORDER.length) * 100);
 }
 
-export function uploadPhaseLabel(phase: ClientUploadPhase): string {
-  return uploadPhaseLabelForLocale(phase, "it");
+export function uploadPhaseLabel(phase: ClientUploadPhase, locale: string): string {
+  return uploadPhaseLabelForLocale(phase, locale);
 }
 
 export function pipelineStateLabelForLocale(state: PipelineState | string, locale: string): string {

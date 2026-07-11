@@ -12,7 +12,10 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${getEnv().APP_BASE_URL}/?auth_error=invalid_state`);
   }
   try {
-    const { identity, idToken, refreshToken, refreshExpiresAt } = await exchangeCodeForIdentity({ code, expectedNonce: stored.nonce });
+    const { identity, idToken, refreshToken, refreshExpiresAt } = await exchangeCodeForIdentity({
+      code,
+      expectedNonce: stored.nonce,
+    });
     await setAuthenticatedSession(identity, { idToken, refreshToken, refreshExpiresAt });
     return NextResponse.redirect(`${getEnv().APP_BASE_URL}${stored.returnTo ?? ""}`);
   } catch {

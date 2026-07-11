@@ -41,7 +41,10 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn("inline-flex h-8 rounded-md border border-border bg-muted/50 p-0.5 shadow-sm", className)}
+      className={cn(
+        "inline-flex h-8 rounded-md border border-border bg-muted/50 p-0.5 shadow-sm",
+        className,
+      )}
       role="group"
       aria-label="Tema interfaccia"
     >

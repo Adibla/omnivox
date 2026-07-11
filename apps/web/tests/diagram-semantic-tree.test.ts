@@ -15,7 +15,10 @@ mindmap
 
     expect(tree[0]?.label).toBe("Temi principali");
     expect(tree[0]?.children[0]?.label).toBe("Prodotto");
-    expect(tree[0]?.children[0]?.children.map((node) => node.label)).toEqual(["Ricerca", "Diagrammi"]);
+    expect(tree[0]?.children[0]?.children.map((node) => node.label)).toEqual([
+      "Ricerca",
+      "Diagrammi",
+    ]);
   });
 
   it("parses flowchart edges into a navigable path", () => {

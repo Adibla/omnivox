@@ -32,7 +32,7 @@ export function AppShell({
   children,
   mobileNavOpen,
   sidebarCollapsed = false,
-  onOpenMobileNav
+  onOpenMobileNav,
 }: AppShellProps) {
   const { t } = useI18n();
 
@@ -45,7 +45,7 @@ export function AppShell({
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-[272px] shrink-0 flex-col border-r border-border/70 bg-card transition-[width,transform] duration-200 ease-out md:static md:z-0 md:translate-x-0",
           sidebarCollapsed && "md:w-[76px]",
-          mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
         aria-label={t("shell.nav")}
       >

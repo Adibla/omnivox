@@ -8,7 +8,12 @@ export function useSessionCsrf() {
   const [authMode, setAuthMode] = useState<"disabled" | "keycloak">("disabled");
   const [authenticated, setAuthenticated] = useState(false);
   const [tenantId, setTenantId] = useState("");
-  const [user, setUser] = useState<{ subject: string; tenantId?: string; email?: string; name?: string } | null>(null);
+  const [user, setUser] = useState<{
+    subject: string;
+    tenantId?: string;
+    email?: string;
+    name?: string;
+  } | null>(null);
 
   const refresh = useCallback(async () => {
     const response = await fetch("/api/v1/auth/session", { method: "POST" });

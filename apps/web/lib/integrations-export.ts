@@ -18,13 +18,16 @@ export function buildSlackSummary(input: { title: string; result: AnalysisOutput
     `*Sentiment:* ${result.sentiment}`,
     "",
     "*Brief (estratto)*",
-    result.executiveBriefMarkdown.slice(0, 1200) + (result.executiveBriefMarkdown.length > 1200 ? "…" : ""),
+    result.executiveBriefMarkdown.slice(0, 1200) +
+      (result.executiveBriefMarkdown.length > 1200 ? "…" : ""),
     "",
-    "*Azioni principali*"
+    "*Azioni principali*",
   ];
   for (const a of result.actions.slice(0, 8)) {
     const due = a.dueDate ? new Date(a.dueDate).toLocaleDateString("it-IT") : "—";
-    lines.push(`• [${a.status}] [${a.actionType}] ${a.title} — @${a.owner} — scad. ${due} — prio ${a.priority}`);
+    lines.push(
+      `• [${a.status}] [${a.actionType}] ${a.title} — @${a.owner} — scad. ${due} — prio ${a.priority}`,
+    );
   }
   if (result.actions.length > 8) {
     lines.push(`_…e altre ${result.actions.length - 8} azioni (vedi export completo)._`);
@@ -47,7 +50,7 @@ export function buildActionsIcs(input: { title: string; result: AnalysisOutput }
     "PRODID:-//OmniVox//Actions//IT",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:" + escapeIcsText(`OmniVox — ${title}`)
+    "X-WR-CALNAME:" + escapeIcsText(`OmniVox — ${title}`),
   ];
   let seq = 0;
   for (const action of result.actions) {
@@ -69,7 +72,7 @@ export function buildActionsIcs(input: { title: string; result: AnalysisOutput }
       `DTEND:${formatIcsDate(end)}`,
       `SUMMARY:${escapeIcsText(action.title)}`,
       `DESCRIPTION:${escapeIcsText(`Stato: ${action.status}. Tipo: ${action.actionType}. Owner: ${action.owner}. Priorità: ${action.priority}. Rischio: ${action.risk}.`)}`,
-      "END:VEVENT"
+      "END:VEVENT",
     );
   }
   lines.push("END:VCALENDAR");

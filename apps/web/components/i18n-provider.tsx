@@ -42,7 +42,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return {
       locale,
       setLocale,
-      t: (key) => dictionaries[locale][key] ?? dictionaries.en[key] ?? dictionaries.it[key] ?? key
+      t: (key) => dictionaries[locale][key] ?? dictionaries.en[key] ?? dictionaries.it[key] ?? key,
     };
   }, [locale]);
 

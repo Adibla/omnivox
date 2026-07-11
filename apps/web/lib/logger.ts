@@ -1,10 +1,16 @@
-export function logInfo(input: { correlationId?: string; event: string; payload?: Record<string, unknown> }) {
-  process.stdout.write(`${formatLog({
-    level: "info",
-    correlationId: input.correlationId,
-    event: input.event,
-    payload: input.payload ?? {}
-  })}\n`);
+export function logInfo(input: {
+  correlationId?: string;
+  event: string;
+  payload?: Record<string, unknown>;
+}) {
+  process.stdout.write(
+    `${formatLog({
+      level: "info",
+      correlationId: input.correlationId,
+      event: input.event,
+      payload: input.payload ?? {},
+    })}\n`,
+  );
 }
 
 export function logError(input: {
@@ -13,13 +19,15 @@ export function logError(input: {
   error: string;
   payload?: Record<string, unknown>;
 }) {
-  process.stderr.write(`${formatLog({
-    level: "error",
-    correlationId: input.correlationId,
-    event: input.event,
-    error: input.error,
-    payload: input.payload ?? {}
-  })}\n`);
+  process.stderr.write(
+    `${formatLog({
+      level: "error",
+      correlationId: input.correlationId,
+      event: input.event,
+      error: input.error,
+      payload: input.payload ?? {},
+    })}\n`,
+  );
 }
 
 function formatLog(input: {
@@ -35,6 +43,6 @@ function formatLog(input: {
     correlationId: input.correlationId,
     event: input.event,
     error: input.error,
-    payload: input.payload
+    payload: input.payload,
   });
 }

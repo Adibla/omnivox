@@ -1,7 +1,11 @@
 export const DIAGRAM_SCALE_MIN = 0.2;
 export const DIAGRAM_SCALE_MAX = 4;
 
-export function clampDiagramScale(scale: number, min = DIAGRAM_SCALE_MIN, max = DIAGRAM_SCALE_MAX): number {
+export function clampDiagramScale(
+  scale: number,
+  min = DIAGRAM_SCALE_MIN,
+  max = DIAGRAM_SCALE_MAX,
+): number {
   return Math.min(max, Math.max(min, scale));
 }
 
@@ -21,7 +25,7 @@ export function panAfterZoomAtPoint(input: {
   const ratio = nextScale / scale;
   return {
     tx: pointerX - (pointerX - tx) * ratio,
-    ty: pointerY - (pointerY - ty) * ratio
+    ty: pointerY - (pointerY - ty) * ratio,
   };
 }
 
@@ -59,6 +63,6 @@ export function centerBBoxInViewport(input: {
   const cy = input.bbox.y + input.bbox.height / 2;
   return {
     tx: input.containerWidth / 2 - cx * input.scale,
-    ty: input.containerHeight / 2 - cy * input.scale
+    ty: input.containerHeight / 2 - cy * input.scale,
   };
 }

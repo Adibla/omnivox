@@ -59,11 +59,15 @@ async function main() {
       await client.query("begin");
       try {
         await client.query(migration.sql);
-        await client.query("insert into schema_migrations (version) values ($1)", [migration.version]);
+        await client.query("insert into schema_migrations (version) values ($1)", [
+          migration.version,
+        ]);
         await client.query("commit");
       } catch (error) {
         await client.query("rollback");
-        throw new Error(`Migration ${migration.version} failed: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+          `Migration ${migration.version} failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
     console.log(`Applied ${pending.length} migration(s).`);

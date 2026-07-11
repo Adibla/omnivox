@@ -18,7 +18,11 @@ function startOfDayMs(d: Date) {
   return x.getTime();
 }
 
-export function OverviewPanel({ recent, onNewAnalysis, authMode = "disabled" }: OverviewPanelProps) {
+export function OverviewPanel({
+  recent,
+  onNewAnalysis,
+  authMode = "disabled",
+}: OverviewPanelProps) {
   const { t } = useI18n();
   const now = new Date();
   const weekAgo = startOfDayMs(now) - 7 * 24 * 60 * 60 * 1000;
@@ -31,7 +35,10 @@ export function OverviewPanel({ recent, onNewAnalysis, authMode = "disabled" }: 
     return !Number.isNaN(t) && t >= weekAgo;
   }).length;
 
-  const totalActions = recent.reduce((sum, r) => sum + (typeof r.actionCount === "number" ? r.actionCount : 0), 0);
+  const totalActions = recent.reduce(
+    (sum, r) => sum + (typeof r.actionCount === "number" ? r.actionCount : 0),
+    0,
+  );
 
   return (
     <div className="space-y-12">
@@ -40,11 +47,14 @@ export function OverviewPanel({ recent, onNewAnalysis, authMode = "disabled" }: 
           <div>
             <p className="ui-overline text-primary">{t("breadcrumb.inbox")}</p>
             <h1 className="mt-3 text-display sm:text-4xl">{t("overview.title")}</h1>
-            <p className="mt-4 max-w-xl text-body">
-              {t("overview.copy")}
-            </p>
+            <p className="mt-4 max-w-xl text-body">{t("overview.copy")}</p>
           </div>
-          <Button type="button" size="lg" className="h-12 px-5 text-base shadow-sm" onClick={onNewAnalysis}>
+          <Button
+            type="button"
+            size="lg"
+            className="h-12 px-5 text-base shadow-sm"
+            onClick={onNewAnalysis}
+          >
             <Plus aria-hidden="true" />
             {t("overview.new")}
             <ArrowRight aria-hidden="true" />
@@ -94,13 +104,9 @@ export function OverviewPanel({ recent, onNewAnalysis, authMode = "disabled" }: 
           </summary>
           <p className="mt-3 text-sm text-muted-foreground">
             {authMode === "keycloak" ? (
-              <>
-                {t("overview.privacyProtected")}
-              </>
+              <>{t("overview.privacyProtected")}</>
             ) : (
-              <>
-                {t("overview.privacyLocal")}
-              </>
+              <>{t("overview.privacyLocal")}</>
             )}
           </p>
         </details>

@@ -12,11 +12,12 @@ const CODE_HINTS_IT: Record<string, string> = {
   not_found: "Risorsa non trovata.",
   conflict: "Conflitto: ad esempio budget token superato.",
   rate_limited: "Troppe richieste. Riprova tra poco.",
-  internal_error: "Errore interno del server."
+  internal_error: "Errore interno del server.",
 };
 
 export function formatApiErrorMessage(body: ApiErrorBody): string {
-  const base = body.message?.trim() || CODE_HINTS_IT[body.code ?? ""] || "Si è verificato un errore.";
+  const base =
+    body.message?.trim() || CODE_HINTS_IT[body.code ?? ""] || "Si è verificato un errore.";
   const detail = body.detail?.trim();
   if (detail && detail !== base) {
     return `${base} (${detail})`;
@@ -28,7 +29,9 @@ export async function parseFailedResponse(response: Response): Promise<string> {
   return (await parseFailedResponseMeta(response)).message;
 }
 
-export async function parseFailedResponseMeta(response: Response): Promise<ApiErrorBody & { status: number; message: string }> {
+export async function parseFailedResponseMeta(
+  response: Response,
+): Promise<ApiErrorBody & { status: number; message: string }> {
   const text = await response.text();
   try {
     const body = JSON.parse(text) as ApiErrorBody;
@@ -36,7 +39,7 @@ export async function parseFailedResponseMeta(response: Response): Promise<ApiEr
       return {
         ...body,
         status: response.status,
-        message: formatApiErrorMessage(body)
+        message: formatApiErrorMessage(body),
       };
     }
   } catch {
@@ -44,6 +47,6 @@ export async function parseFailedResponseMeta(response: Response): Promise<ApiEr
   }
   return {
     status: response.status,
-    message: text.trim() || `HTTP ${response.status}`
+    message: text.trim() || `HTTP ${response.status}`,
   };
 }

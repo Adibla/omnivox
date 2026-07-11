@@ -18,8 +18,8 @@ export async function processActions(payload: PipelineMessage, context: StageCon
     ...result,
     artifactStatus: {
       ...result.artifactStatus,
-      actions: artifactStatus("generating")
-    }
+      actions: artifactStatus("generating"),
+    },
   });
   try {
     const outLang = outputLanguageInstruction(payload.outputLanguage);
@@ -37,15 +37,15 @@ Extract a useful operating plan, not only literal tasks. Include:
 Use actionType: task, decision, risk, or follow_up.
 Use owner from the transcript when present; otherwise use "Da assegnare" for Italian output or "Unassigned" for English output.
 Do not invent unrelated work. Prefer 4-8 high-signal items when the transcript supports them.
-All user-facing action titles and generic owner roles MUST be written in: ${outLang}. Keep proper names unchanged.`
+All user-facing action titles and generic owner roles MUST be written in: ${outLang}. Keep proper names unchanged.`,
         },
         {
           role: "user",
           content: JSON.stringify({
             normalizedTranscript: transcript,
-            participants: result.participants ?? []
-          })
-        }
+            participants: result.participants ?? [],
+          }),
+        },
       ],
       text: {
         format: {
@@ -68,17 +68,17 @@ All user-facing action titles and generic owner roles MUST be written in: ${outL
                     dueDate: { type: ["string", "null"] },
                     priority: { type: "string", enum: ["low", "medium", "high"] },
                     risk: { type: "string", enum: ["low", "medium", "high"] },
-                    actionType: { type: "string", enum: ["task", "decision", "risk", "follow_up"] }
+                    actionType: { type: "string", enum: ["task", "decision", "risk", "follow_up"] },
                   },
-                  required: ["title", "owner", "dueDate", "priority", "risk", "actionType"]
-                }
-              }
+                  required: ["title", "owner", "dueDate", "priority", "risk", "actionType"],
+                },
+              },
             },
-            required: ["actions"]
+            required: ["actions"],
           },
-          strict: true
-        }
-      }
+          strict: true,
+        },
+      },
     } satisfies ResponseCreateParamsNonStreaming);
     const candidate = JSON.parse(response.output_text) as {
       actions: Array<{
@@ -104,12 +104,17 @@ All user-facing action titles and generic owner roles MUST be written in: ${outL
         const parsedDate = new Date(action.dueDate);
         return Number.isNaN(parsedDate.getTime())
           ? { ...action, id: actionId(action, index), dueDate: null, status: "todo" as const }
-          : { ...action, id: actionId(action, index), dueDate: parsedDate.toISOString(), status: "todo" as const };
+          : {
+              ...action,
+              id: actionId(action, index),
+              dueDate: parsedDate.toISOString(),
+              status: "todo" as const,
+            };
       }),
       artifactStatus: {
         ...latest.artifactStatus,
-        actions: artifactStatus("completed")
-      }
+        actions: artifactStatus("completed"),
+      },
     });
     await updateJobResult(payload.jobId, parsed);
     await writeAudit(payload.jobId, "pipeline-step", { state: "actions-completed" });
@@ -123,8 +128,11 @@ All user-facing action titles and generic owner roles MUST be written in: ${outL
       ...latest,
       artifactStatus: {
         ...latest.artifactStatus,
-        actions: artifactStatus("failed", error instanceof Error ? error.message : "Action generation failed.")
-      }
+        actions: artifactStatus(
+          "failed",
+          error instanceof Error ? error.message : "Action generation failed.",
+        ),
+      },
     });
     await writeAudit(payload.jobId, "pipeline-step", { state: "actions-failed" });
   }

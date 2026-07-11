@@ -5,7 +5,7 @@ import {
   DIAGRAM_SCALE_MAX,
   DIAGRAM_SCALE_MIN,
   fitDiagramToContainer,
-  panAfterZoomAtPoint
+  panAfterZoomAtPoint,
 } from "../lib/diagram-viewport-math";
 
 describe("diagram-viewport-math", () => {
@@ -22,7 +22,7 @@ describe("diagram-viewport-math", () => {
       tx: 0,
       ty: 0,
       scale: 1,
-      nextScale: 2
+      nextScale: 2,
     });
     expect(next.tx).toBe(-100);
     expect(next.ty).toBe(-100);
@@ -34,7 +34,7 @@ describe("diagram-viewport-math", () => {
       bbox,
       containerWidth: 500,
       containerHeight: 400,
-      padding: 0
+      padding: 0,
     });
     expect(scale).toBe(1);
     expect(tx).toBe((500 - 200) / 2 - 10);
@@ -47,7 +47,7 @@ describe("diagram-viewport-math", () => {
       bbox,
       containerWidth: 500,
       containerHeight: 400,
-      scale: 1
+      scale: 1,
     });
     expect(tx).toBe(250 - 50);
     expect(ty).toBe(200 - 50);

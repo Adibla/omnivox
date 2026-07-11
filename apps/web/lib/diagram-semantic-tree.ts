@@ -61,7 +61,10 @@ function parseFlowchart(code: string): DiagramSemanticNode[] {
   const nodeLabels = new Map<string, string>();
   const children = new Map<string, Set<string>>();
   const seenAsChild = new Set<string>();
-  const lines = code.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = code
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
   const ensure = (raw: string) => {
     const id = raw.match(/^[A-Za-z0-9_-]+/)?.[0] ?? raw;
@@ -78,7 +81,9 @@ function parseFlowchart(code: string): DiagramSemanticNode[] {
     if (line.startsWith("%%") || /^flowchart|^graph/.test(line)) {
       continue;
     }
-    const parts = line.split(/(?:-->|---|==>|-.->)/).map((part) => part.replace(/\|.*?\|/g, "").trim());
+    const parts = line
+      .split(/(?:-->|---|==>|-.->)/)
+      .map((part) => part.replace(/\|.*?\|/g, "").trim());
     if (parts.length < 2) {
       ensure(line);
       continue;
@@ -103,7 +108,7 @@ function parseFlowchart(code: string): DiagramSemanticNode[] {
     return {
       id,
       label: nodeLabels.get(id) ?? id,
-      children: [...(children.get(id) ?? [])].map((child) => build(child, nextPath))
+      children: [...(children.get(id) ?? [])].map((child) => build(child, nextPath)),
     };
   };
 

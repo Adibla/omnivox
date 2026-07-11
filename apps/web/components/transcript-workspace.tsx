@@ -26,12 +26,26 @@ export type TranscriptWorkspaceProps = {
   onToast: (message: string) => void;
 };
 
-export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToast }: TranscriptWorkspaceProps) {
+export function TranscriptWorkspace({
+  jobId,
+  result,
+  csrfToken,
+  csrfReady,
+  onToast,
+}: TranscriptWorkspaceProps) {
   const { t } = useI18n();
   const transcript = result.normalizedTranscript?.trim() ?? "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- segments is a stable read from `result` props; tracking it is the intended closure.
   const segments = result.transcriptSegments ?? [];
-  const originalTranscript = useMemo(() => segments.map((s) => s.text).join("\n").trim(), [segments]);
   const participants = result.participants ?? [];
+  const originalTranscript = useMemo(
+    () =>
+      segments
+        .map((s) => s.text)
+        .join("\n")
+        .trim(),
+    [segments],
+  );
 
   const [search, setSearch] = useState("");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -71,7 +85,7 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
     try {
       const response = await fetch(`/api/v1/pipeline/${jobId}/read-audio`, {
         method: "POST",
-        headers: { "x-csrf-token": csrfToken }
+        headers: { "x-csrf-token": csrfToken },
       });
       if (!response.ok) {
         throw new Error(await parseFailedResponse(response));
@@ -89,10 +103,27 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
   }, [jobId, csrfReady, csrfToken, t]);
 
   useEffect(() => {
-    if (segments.length > 0 && jobId && csrfReady && csrfToken && !audioUrl && !audioLoading && !audioError) {
+    if (
+      segments.length > 0 &&
+      jobId &&
+      csrfReady &&
+      csrfToken &&
+      !audioUrl &&
+      !audioLoading &&
+      !audioError
+    ) {
       void loadAudioUrl();
     }
-  }, [segments.length, jobId, csrfReady, csrfToken, audioUrl, audioLoading, audioError, loadAudioUrl]);
+  }, [
+    segments.length,
+    jobId,
+    csrfReady,
+    csrfToken,
+    audioUrl,
+    audioLoading,
+    audioError,
+    loadAudioUrl,
+  ]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -157,9 +188,9 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-csrf-token": csrfToken
+          "x-csrf-token": csrfToken,
         },
-        body: JSON.stringify({ question: q })
+        body: JSON.stringify({ question: q }),
       });
       if (!response.ok) {
         throw new Error(await parseFailedResponse(response));
@@ -204,7 +235,13 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
           {t("transcript.download")}
         </Button>
         {jobId && segments.length === 0 ? (
-          <Button type="button" size="sm" variant="outline" onClick={() => void loadAudioUrl()} disabled={audioLoading || !csrfReady}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void loadAudioUrl()}
+            disabled={audioLoading || !csrfReady}
+          >
             {audioLoading ? t("transcript.audioLoading") : t("transcript.audioLoad")}
           </Button>
         ) : null}
@@ -222,9 +259,7 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
           <audio ref={audioRef} controls className="w-full" src={audioUrl} preload="metadata">
             <track kind="captions" />
           </audio>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t("transcript.audioHint")}
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("transcript.audioHint")}</p>
         </div>
       ) : null}
 
@@ -274,28 +309,32 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
             </Badge>
           </div>
           <div className="max-h-[420px] space-y-1 overflow-y-auto rounded-lg border border-border/40 bg-muted/15 p-2">
-          {filteredSegments.map((s) => (
-            <div
-              key={`${s.index}-${s.startSec}`}
-              className={`flex gap-2 rounded-md px-2 py-1.5 text-sm ${
-                activeSegIndex === s.index ? "bg-primary/15 ring-1 ring-primary/40" : "hover:bg-muted/40"
-              }`}
-            >
-              <button
-                type="button"
-                className="shrink-0 font-mono text-xs text-primary underline-offset-2 hover:underline disabled:opacity-40"
-                disabled={!audioUrl}
-                onClick={() => seekTo(s.startSec, s.index)}
+            {filteredSegments.map((s) => (
+              <div
+                key={`${s.index}-${s.startSec}`}
+                className={`flex gap-2 rounded-md px-2 py-1.5 text-sm ${
+                  activeSegIndex === s.index
+                    ? "bg-primary/15 ring-1 ring-primary/40"
+                    : "hover:bg-muted/40"
+                }`}
               >
-                {formatTimestamp(s.startSec)}
-              </button>
-              <p className="min-w-0 flex-1 leading-relaxed text-foreground/95">{s.text}</p>
-            </div>
-          ))}
-          {filteredSegments.length === 0 ? (
-            <p className="p-4 text-center text-sm text-muted-foreground">{t("transcript.noSegments")}</p>
-          ) : null}
-        </div>
+                <button
+                  type="button"
+                  className="shrink-0 font-mono text-xs text-primary underline-offset-2 hover:underline disabled:opacity-40"
+                  disabled={!audioUrl}
+                  onClick={() => seekTo(s.startSec, s.index)}
+                >
+                  {formatTimestamp(s.startSec)}
+                </button>
+                <p className="min-w-0 flex-1 leading-relaxed text-foreground/95">{s.text}</p>
+              </div>
+            ))}
+            {filteredSegments.length === 0 ? (
+              <p className="p-4 text-center text-sm text-muted-foreground">
+                {t("transcript.noSegments")}
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -318,9 +357,7 @@ export function TranscriptWorkspace({ jobId, result, csrfToken, csrfReady, onToa
 
       <div className="ui-panel space-y-3 p-4">
         <h3 className="text-sm font-semibold">{t("transcript.askTitle")}</h3>
-        <p className="text-xs text-muted-foreground">
-          {t("transcript.askHelp")}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("transcript.askHelp")}</p>
         <Textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}

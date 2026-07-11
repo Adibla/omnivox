@@ -6,7 +6,7 @@ describe("production-like API smoke", () => {
   test.skipIf(!baseUrl)("creates session and returns csrf token", async () => {
     const base = baseUrl as string;
     const response = await fetch(`${base}/api/v1/auth/session`, {
-      method: "POST"
+      method: "POST",
     });
     expect(response.status).toBe(201);
     const body = (await response.json()) as { csrfToken?: string };

@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = {
     ...createOidcState(),
-    returnTo: safeReturnTo(url.searchParams.get("returnTo"))
+    returnTo: safeReturnTo(url.searchParams.get("returnTo")),
   };
   await setOidcStateCookie(state);
   return NextResponse.redirect(await buildAuthorizationUrl(state));

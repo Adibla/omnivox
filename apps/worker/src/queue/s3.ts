@@ -15,8 +15,8 @@ function getS3Client() {
     forcePathStyle: env.S3_FORCE_PATH_STYLE,
     credentials: {
       accessKeyId: env.S3_ACCESS_KEY_ID,
-      secretAccessKey: env.S3_SECRET_ACCESS_KEY
-    }
+      secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+    },
   });
   return s3Client;
 }
@@ -25,7 +25,7 @@ export async function createPresignedReadUrl(objectKey: string) {
   const env = getWorkerEnv();
   const command = new GetObjectCommand({
     Bucket: env.S3_BUCKET,
-    Key: objectKey
+    Key: objectKey,
   });
   return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 }

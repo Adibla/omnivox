@@ -28,14 +28,14 @@ function emptyPendingArtifact(): PendingArtifact {
     active: false,
     progress: 0,
     startedAt: 0,
-    timedOut: false
+    timedOut: false,
   };
 }
 
 function emptyPendingState(): Record<ArtifactKind, PendingArtifact> {
   return {
     diagrams: emptyPendingArtifact(),
-    actions: emptyPendingArtifact()
+    actions: emptyPendingArtifact(),
   };
 }
 
@@ -50,16 +50,17 @@ export function useSmoothArtifactGeneration({
   failed,
   onTimeout,
   minDurationMs = DEFAULT_MIN_DURATION_MS,
-  timeoutMs = DEFAULT_TIMEOUT_MS
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 }: UseSmoothArtifactGenerationInput) {
-  const [pendingArtifacts, setPendingArtifacts] = useState<Record<ArtifactKind, PendingArtifact>>(emptyPendingState);
+  const [pendingArtifacts, setPendingArtifacts] =
+    useState<Record<ArtifactKind, PendingArtifact>>(emptyPendingState);
   const pendingRef = useRef<Record<ArtifactKind, PendingArtifact>>(emptyPendingState());
   const readyRef = useRef(ready);
   const failedRef = useRef(failed);
   const onTimeoutRef = useRef(onTimeout);
   const completionTimersRef = useRef<Record<ArtifactKind, number | null>>({
     diagrams: null,
-    actions: null
+    actions: null,
   });
 
   useEffect(() => {
@@ -74,13 +75,20 @@ export function useSmoothArtifactGeneration({
     onTimeoutRef.current = onTimeout;
   }, [onTimeout]);
 
-  const setPending = useCallback((updater: (current: Record<ArtifactKind, PendingArtifact>) => Record<ArtifactKind, PendingArtifact>) => {
-    setPendingArtifacts((current) => {
-      const next = updater(current);
-      pendingRef.current = next;
-      return next;
-    });
-  }, []);
+  const setPending = useCallback(
+    (
+      updater: (
+        current: Record<ArtifactKind, PendingArtifact>,
+      ) => Record<ArtifactKind, PendingArtifact>,
+    ) => {
+      setPendingArtifacts((current) => {
+        const next = updater(current);
+        pendingRef.current = next;
+        return next;
+      });
+    },
+    [],
+  );
 
   const clearCompletionTimer = useCallback((kind: ArtifactKind) => {
     const timer = completionTimersRef.current[kind];
@@ -95,10 +103,10 @@ export function useSmoothArtifactGeneration({
       clearCompletionTimer(kind);
       setPending((current) => ({
         ...current,
-        [kind]: emptyPendingArtifact()
+        [kind]: emptyPendingArtifact(),
       }));
     },
-    [clearCompletionTimer, setPending]
+    [clearCompletionTimer, setPending],
   );
 
   const start = useCallback(
@@ -110,11 +118,11 @@ export function useSmoothArtifactGeneration({
           active: true,
           progress: 4,
           startedAt: Date.now(),
-          timedOut: false
-        }
+          timedOut: false,
+        },
       }));
     },
-    [clearCompletionTimer, setPending]
+    [clearCompletionTimer, setPending],
   );
 
   const reset = useCallback(() => {
@@ -139,8 +147,8 @@ export function useSmoothArtifactGeneration({
             ...current,
             [kind]: {
               ...current[kind],
-              progress: 100
-            }
+              progress: 100,
+            },
           }));
           if (!completionTimersRef.current[kind]) {
             const remaining = Math.max(300, minDurationMs - elapsed);
@@ -161,8 +169,8 @@ export function useSmoothArtifactGeneration({
               ...current[kind],
               active: false,
               progress: 0,
-              timedOut: true
-            }
+              timedOut: true,
+            },
           }));
           onTimeoutRef.current(kind);
           return;
@@ -172,8 +180,8 @@ export function useSmoothArtifactGeneration({
           ...current,
           [kind]: {
             ...current[kind],
-            progress: progressFor(elapsed, timeoutMs, pending.progress)
-          }
+            progress: progressFor(elapsed, timeoutMs, pending.progress),
+          },
         }));
       });
     }, 180);
@@ -184,6 +192,6 @@ export function useSmoothArtifactGeneration({
     pendingArtifacts,
     start,
     stop,
-    reset
+    reset,
   };
 }

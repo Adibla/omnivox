@@ -12,8 +12,8 @@ export function getOpenAIClient() {
     apiKey: env.OPENAI_API_KEY,
     baseURL: env.OPENAI_BASE_URL,
     defaultHeaders: {
-      [env.OPENAI_ZDR_HEADER]: env.OPENAI_ZDR_VALUE
-    }
+      [env.OPENAI_ZDR_HEADER]: env.OPENAI_ZDR_VALUE,
+    },
   });
   return openaiClient;
 }

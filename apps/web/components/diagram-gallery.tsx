@@ -26,13 +26,19 @@ function relationCount(mermaidCode: string): number {
 export function DiagramGallery({ artifacts }: DiagramGalleryProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState("0");
-  const signature = useMemo(() => artifacts.map((a, i) => `${i}:${a.title}`).join("|"), [artifacts]);
+  const signature = useMemo(
+    () => artifacts.map((a, i) => `${i}:${a.title}`).join("|"),
+    [artifacts],
+  );
   const activeIndex = Math.min(Number(tab) || 0, artifacts.length - 1);
   const activeArtifact = artifacts[activeIndex];
-  const totalLines = useMemo(() => artifacts.reduce((sum, artifact) => sum + lineCount(artifact.mermaidCode), 0), [artifacts]);
+  const totalLines = useMemo(
+    () => artifacts.reduce((sum, artifact) => sum + lineCount(artifact.mermaidCode), 0),
+    [artifacts],
+  );
   const totalRelations = useMemo(
     () => artifacts.reduce((sum, artifact) => sum + relationCount(artifact.mermaidCode), 0),
-    [artifacts]
+    [artifacts],
   );
 
   useEffect(() => {
@@ -56,8 +62,12 @@ export function DiagramGallery({ artifacts }: DiagramGalleryProps) {
                   <Badge variant="default" className="bg-primary/20 text-primary">
                     {artifacts.length} {t("diagram.views")}
                   </Badge>
-                  <Badge variant="outline">{totalRelations} {t("diagram.relations")}</Badge>
-                  <Badge variant="outline">{totalLines} {t("diagram.mermaidLines")}</Badge>
+                  <Badge variant="outline">
+                    {totalRelations} {t("diagram.relations")}
+                  </Badge>
+                  <Badge variant="outline">
+                    {totalLines} {t("diagram.mermaidLines")}
+                  </Badge>
                 </div>
                 <div className="max-w-2xl">
                   <p className="ui-overline mb-2 text-[10px]">{t("diagram.activeView")}</p>
@@ -93,7 +103,7 @@ export function DiagramGallery({ artifacts }: DiagramGalleryProps) {
                       value={id}
                       title={artifact.title}
                       className={cn(
-                        "group h-auto w-full items-stretch justify-start rounded-lg border border-border/50 bg-background/55 p-0 text-left transition-colors hover:border-primary/35 hover:bg-background/80 data-[state=active]:border-primary/60 data-[state=active]:bg-background data-[state=active]:shadow-[0_0_0_1px_rgba(59,125,240,0.18)]"
+                        "group h-auto w-full items-stretch justify-start rounded-lg border border-border/50 bg-background/55 p-0 text-left transition-colors hover:border-primary/35 hover:bg-background/80 data-[state=active]:border-primary/60 data-[state=active]:bg-background data-[state=active]:shadow-[0_0_0_1px_rgba(59,125,240,0.18)]",
                       )}
                     >
                       <span className="flex w-full gap-3 p-3">
@@ -102,7 +112,7 @@ export function DiagramGallery({ artifacts }: DiagramGalleryProps) {
                             "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-xs font-semibold tabular-nums",
                             active
                               ? "border-primary/45 bg-primary/15 text-primary"
-                              : "border-border/60 bg-muted/35 text-muted-foreground"
+                              : "border-border/60 bg-muted/35 text-muted-foreground",
                           )}
                         >
                           {index + 1}
@@ -114,9 +124,13 @@ export function DiagramGallery({ artifacts }: DiagramGalleryProps) {
                           <span className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                             <span className="capitalize">{typeLabel(artifact.diagramType)}</span>
                             <span aria-hidden="true">/</span>
-                            <span className="tabular-nums">{lines} {t("diagram.lines")}</span>
+                            <span className="tabular-nums">
+                              {lines} {t("diagram.lines")}
+                            </span>
                             <span aria-hidden="true">/</span>
-                            <span className="tabular-nums">{relations} {t("diagram.links")}</span>
+                            <span className="tabular-nums">
+                              {relations} {t("diagram.links")}
+                            </span>
                           </span>
                         </span>
                       </span>

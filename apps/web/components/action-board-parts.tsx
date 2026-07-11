@@ -39,17 +39,20 @@ export function statusLabel(status: ActionStatus, t: Translate): string {
     todo: t("actions.statusTodo"),
     in_progress: t("actions.statusInProgress"),
     blocked: t("actions.statusBlocked"),
-    done: t("actions.statusDone")
+    done: t("actions.statusDone"),
   };
   return labels[status];
 }
 
-function actionTypeLabel(type: AnalysisOutput["actions"][number]["actionType"], t: Translate): string {
+function actionTypeLabel(
+  type: AnalysisOutput["actions"][number]["actionType"],
+  t: Translate,
+): string {
   const labels: Record<AnalysisOutput["actions"][number]["actionType"], string> = {
     task: t("actions.typeTask"),
     decision: t("actions.typeDecision"),
     risk: t("actions.typeRisk"),
-    follow_up: t("actions.typeFollowUp")
+    follow_up: t("actions.typeFollowUp"),
   };
   return labels[type];
 }
@@ -76,7 +79,10 @@ export function formatDue(iso: string | null | undefined, locale: string, t: Tra
   if (Number.isNaN(d.getTime())) {
     return t("actions.invalidDue");
   }
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "it-IT", { dateStyle: "medium", timeStyle: "short" }).format(d);
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "it-IT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
 }
 
 export function dueState(iso: string | null | undefined): "overdue" | "soon" | "later" | "none" {
@@ -116,7 +122,15 @@ function initials(name: string): string {
   return parts.map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
 
-export function Metric({ label, value, tone = "normal" }: { label: string; value: number; tone?: "normal" | "hot" | "warn" }) {
+export function Metric({
+  label,
+  value,
+  tone = "normal",
+}: {
+  label: string;
+  value: number;
+  tone?: "normal" | "hot" | "warn";
+}) {
   return (
     <div
       className={cn(
@@ -125,10 +139,12 @@ export function Metric({ label, value, tone = "normal" }: { label: string; value
           ? "border-destructive/45 bg-destructive/10"
           : tone === "warn"
             ? "border-warning/45 bg-warning/10"
-            : "border-border/60 bg-background/70"
+            : "border-border/60 bg-background/70",
       )}
     >
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 text-lg font-semibold text-foreground tabular-nums">{value}</p>
     </div>
   );
@@ -145,7 +161,7 @@ export function ActionLane({
   onDrop,
   onSelect,
   onStatus,
-  statusFor
+  statusFor,
 }: {
   dropTarget: ActionStatus | null;
   lane: { status: ActionStatus; rows: TaggedAction[] };
@@ -165,7 +181,7 @@ export function ActionLane({
     <section
       className={cn(
         "min-h-[420px] w-[360px] shrink-0 rounded-lg border bg-muted/15 transition-colors xl:flex-1",
-        dropTarget === lane.status ? "border-primary/70 bg-primary/10" : "border-border/55"
+        dropTarget === lane.status ? "border-primary/70 bg-primary/10" : "border-border/55",
       )}
       onDragOver={(event) => {
         event.preventDefault();
@@ -180,9 +196,19 @@ export function ActionLane({
       <div className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">{statusLabel(lane.status, t)}</p>
-          <p className="text-[11px] text-muted-foreground tabular-nums">{lane.rows.length} {t("actions.count")}</p>
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {lane.rows.length} {t("actions.count")}
+          </p>
         </div>
-        <Badge variant={lane.status === "done" ? "success" : lane.status === "in_progress" ? "default" : "outline"}>
+        <Badge
+          variant={
+            lane.status === "done"
+              ? "success"
+              : lane.status === "in_progress"
+                ? "default"
+                : "outline"
+          }
+        >
           {statusLabel(lane.status, t)}
         </Badge>
       </div>
@@ -218,7 +244,7 @@ function ActionCard({
   onSelect,
   onStatus,
   onDragStart,
-  onDragEnd
+  onDragEnd,
 }: {
   row: TaggedAction;
   selected: boolean;
@@ -240,7 +266,7 @@ function ActionCard({
         "w-full cursor-grab rounded-lg border bg-background/80 p-3 text-left shadow-sm transition-colors active:cursor-grabbing hover:border-primary/40 hover:bg-background",
         selected ? "border-primary/60 ring-1 ring-primary/30" : "border-border/55",
         status === "done" && "opacity-70",
-        syncing && "ring-1 ring-primary/20"
+        syncing && "ring-1 ring-primary/20",
       )}
       onClick={onSelect}
       onKeyDown={(event) => {
@@ -261,7 +287,12 @@ function ActionCard({
           {initials(item.owner)}
         </span>
         <span className="min-w-0 flex-1">
-          <span className={cn("line-clamp-3 text-sm font-semibold leading-snug text-foreground", status === "done" && "line-through")}>
+          <span
+            className={cn(
+              "line-clamp-3 text-sm font-semibold leading-snug text-foreground",
+              status === "done" && "line-through",
+            )}
+          >
             {item.title}
           </span>
           <span className="mt-2 flex flex-wrap gap-1.5">
@@ -280,7 +311,12 @@ function ActionCard({
               {actionTypeLabel(item.actionType, t)}
             </Badge>
           </span>
-          <span className={cn("mt-2 inline-flex rounded-md border px-2 py-1 text-[10px]", dueTone(item.dueDate))}>
+          <span
+            className={cn(
+              "mt-2 inline-flex rounded-md border px-2 py-1 text-[10px]",
+              dueTone(item.dueDate),
+            )}
+          >
             {formatDue(item.dueDate, locale, t)}
           </span>
         </span>
@@ -295,7 +331,7 @@ function ActionCard({
               "rounded-md border px-2 py-1.5 text-[10px] transition-colors",
               status === nextStatus
                 ? "border-primary/45 bg-primary/15 text-primary"
-                : "border-border/55 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                : "border-border/55 text-muted-foreground hover:bg-muted/40 hover:text-foreground",
             )}
             onClick={(event) => {
               event.stopPropagation();
@@ -315,7 +351,7 @@ export function ActionDetail({
   status,
   syncing,
   onStatus,
-  compact = false
+  compact = false,
 }: {
   row: TaggedAction;
   status: ActionStatus;
@@ -326,11 +362,20 @@ export function ActionDetail({
   const { t, locale } = useI18n();
   const item = row.action;
   return (
-    <div className={cn("rounded-lg border border-border/55 bg-background/75 p-3", !compact && "sticky top-24")}>
+    <div
+      className={cn(
+        "rounded-lg border border-border/55 bg-background/75 p-3",
+        !compact && "sticky top-24",
+      )}
+    >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="ui-overline mb-2 text-[10px]">{syncing ? t("actions.saving") : t("actions.selected")}</p>
-          <h4 className="text-base font-semibold leading-tight text-foreground lg:text-lg">{item.title}</h4>
+          <p className="ui-overline mb-2 text-[10px]">
+            {syncing ? t("actions.saving") : t("actions.selected")}
+          </p>
+          <h4 className="text-base font-semibold leading-tight text-foreground lg:text-lg">
+            {item.title}
+          </h4>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {(["todo", "in_progress", "blocked", "done"] as const).map((nextStatus) => (
@@ -360,7 +405,9 @@ export function ActionDetail({
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border/55 bg-background/65 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 text-foreground">{value}</p>
     </div>
   );

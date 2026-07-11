@@ -2,7 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AnalysisOutput, OutputLanguage } from "@omnivox/shared";
-import { CalendarDays, ChevronDown, ClipboardList, Copy, Download, FileDown, Link2, Loader2, MessageSquareText, MoreHorizontal, RotateCcw, Sparkles } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  ClipboardList,
+  Copy,
+  Download,
+  FileDown,
+  Link2,
+  Loader2,
+  MessageSquareText,
+  MoreHorizontal,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react";
 import { ActionBoard } from "@/components/action-board";
 import { DiagramGallery } from "@/components/diagram-gallery";
 import { ExecutiveBrief } from "@/components/executive-brief";
@@ -21,12 +34,15 @@ import {
   UnavailableReport,
   WorkspaceHeader,
   WorkspaceTile,
-  sentimentLabel
+  sentimentLabel,
 } from "@/components/results-workspace-panels";
 import { useI18n } from "@/components/i18n-provider";
 import { useSessionCsrf } from "@/hooks/use-session-csrf";
 import type { PipelineJobResponse, PipelinePollError } from "@/hooks/use-pipeline-job";
-import { useSmoothArtifactGeneration, type ArtifactKind } from "@/hooks/use-smooth-artifact-generation";
+import {
+  useSmoothArtifactGeneration,
+  type ArtifactKind,
+} from "@/hooks/use-smooth-artifact-generation";
 import { buildMeetingExportMarkdown, downloadTextFile } from "@/lib/export-markdown";
 import { buildActionsIcs, buildSlackSummary, copyToClipboard } from "@/lib/integrations-export";
 import { parseFailedResponse } from "@/lib/parse-api-error";
@@ -49,7 +65,7 @@ const WORKSPACE_VIEWS = [
   { id: "diagrams", labelKey: "label.diagrams" },
   { id: "actions", labelKey: "label.actions" },
   { id: "transcript", labelKey: "label.transcript" },
-  { id: "export", labelKey: "label.export" }
+  { id: "export", labelKey: "label.export" },
 ] as const;
 
 type WorkspaceView = (typeof WORKSPACE_VIEWS)[number]["id"];
@@ -57,7 +73,7 @@ type TranslationLanguage = Exclude<OutputLanguage, "auto">;
 
 const TRANSLATION_OPTIONS: { value: TranslationLanguage; label: string }[] = [
   { value: "it", label: "Italiano" },
-  { value: "en", label: "English" }
+  { value: "en", label: "English" },
 ];
 
 export function ResultsWorkspace({
@@ -68,7 +84,7 @@ export function ResultsWorkspace({
   pipelineJob,
   pollError,
   isLoading = false,
-  onGoHome
+  onGoHome,
 }: ResultsWorkspaceProps) {
   const { t, locale } = useI18n();
   const { csrfToken, ready: csrfReady } = useSessionCsrf();
@@ -103,17 +119,17 @@ export function ResultsWorkspace({
     pendingArtifacts,
     start: startPendingArtifact,
     stop: stopPendingArtifact,
-    reset: resetPendingArtifacts
+    reset: resetPendingArtifacts,
   } = useSmoothArtifactGeneration({
     ready: {
       diagrams: Boolean(result?.artifacts.length),
-      actions: Boolean(result?.actions.length)
+      actions: Boolean(result?.actions.length),
     },
     failed: {
       diagrams: result?.artifactStatus?.diagrams?.state === "failed",
-      actions: result?.artifactStatus?.actions?.state === "failed"
+      actions: result?.artifactStatus?.actions?.state === "failed",
     },
-    onTimeout: onArtifactTimeout
+    onTimeout: onArtifactTimeout,
   });
 
   useEffect(() => {
@@ -191,7 +207,7 @@ export function ResultsWorkspace({
       const response = await fetch(`/api/v1/pipeline/${jobId}/translate`, {
         method: "POST",
         headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ targetLanguage: translationLanguage })
+        body: JSON.stringify({ targetLanguage: translationLanguage }),
       });
       if (!response.ok) {
         throw new Error(await parseFailedResponse(response));
@@ -212,7 +228,8 @@ export function ResultsWorkspace({
         return;
       }
       const state = result.artifactStatus?.[artifact]?.state;
-      const alreadyReady = artifact === "diagrams" ? result.artifacts.length > 0 : result.actions.length > 0;
+      const alreadyReady =
+        artifact === "diagrams" ? result.artifacts.length > 0 : result.actions.length > 0;
       if (alreadyReady) {
         return;
       }
@@ -228,7 +245,7 @@ export function ResultsWorkspace({
       try {
         const response = await fetch(`/api/v1/pipeline/${jobId}/${artifact}/generate`, {
           method: "POST",
-          headers: { "x-csrf-token": csrfToken }
+          headers: { "x-csrf-token": csrfToken },
         });
         if (!response.ok) {
           setOperationError(await parseFailedResponse(response));
@@ -241,12 +258,23 @@ export function ResultsWorkspace({
         stopPendingArtifact(artifact);
       }
     },
-    [csrfReady, csrfToken, jobId, result, startPendingArtifact, stopPendingArtifact, t, translatedResult]
+    [
+      csrfReady,
+      csrfToken,
+      jobId,
+      result,
+      startPendingArtifact,
+      stopPendingArtifact,
+      t,
+      translatedResult,
+    ],
   );
 
   const jobStateLine = pipelineJob ? pipelineStateLabelForLocale(pipelineJob.state, locale) : "";
 
-  const showProgress = Boolean(jobId && pipelineJob && pipelineJob.state !== "completed" && pipelineJob.state !== "failed");
+  const showProgress = Boolean(
+    jobId && pipelineJob && pipelineJob.state !== "completed" && pipelineJob.state !== "failed",
+  );
 
   const priorityInsight = useMemo(() => {
     if (!visibleResult?.actions.length) {
@@ -260,7 +288,7 @@ export function ResultsWorkspace({
         }
         return acc;
       },
-      { high: 0, medium: 0, low: 0 }
+      { high: 0, medium: 0, low: 0 },
     );
   }, [visibleResult]);
 
@@ -276,25 +304,30 @@ export function ResultsWorkspace({
         }
         return acc;
       },
-      { high: 0, medium: 0, low: 0 }
+      { high: 0, medium: 0, low: 0 },
     );
   }, [visibleResult]);
 
   const heading = displayTitle.trim() || meetingId || "Meeting";
-  const unavailable = pollError && !pipelineJob && (pollError.status === 403 || pollError.status === 404);
+  const unavailable =
+    pollError && !pipelineJob && (pollError.status === 403 || pollError.status === 404);
   const diagramState = pendingArtifacts.diagrams.active
     ? "generating"
-    : visibleResult?.artifactStatus?.diagrams?.state ?? (visibleResult?.artifacts.length ? "completed" : "pending");
+    : (visibleResult?.artifactStatus?.diagrams?.state ??
+      (visibleResult?.artifacts.length ? "completed" : "pending"));
   const actionState = pendingArtifacts.actions.active
     ? "generating"
-    : visibleResult?.artifactStatus?.actions?.state ?? (visibleResult?.actions.length ? "completed" : "pending");
+    : (visibleResult?.artifactStatus?.actions?.state ??
+      (visibleResult?.actions.length ? "completed" : "pending"));
   const urgentActions = useMemo(() => {
     if (!visibleResult) {
       return [];
     }
     return [...visibleResult.actions]
       .sort((a, b) => {
-        const priority = (a.priority === "high" ? 0 : a.priority === "medium" ? 1 : 2) - (b.priority === "high" ? 0 : b.priority === "medium" ? 1 : 2);
+        const priority =
+          (a.priority === "high" ? 0 : a.priority === "medium" ? 1 : 2) -
+          (b.priority === "high" ? 0 : b.priority === "medium" ? 1 : 2);
         if (priority !== 0) {
           return priority;
         }
@@ -306,9 +339,17 @@ export function ResultsWorkspace({
   }, [visibleResult]);
 
   const body = unavailable ? (
-      <UnavailableReport
-      title={pollError.status === 403 ? t("result.unavailableForbiddenTitle") : t("result.unavailableMissingTitle")}
-      description={pollError.status === 403 ? t("result.unavailableForbiddenDesc") : t("result.unavailableMissingDesc")}
+    <UnavailableReport
+      title={
+        pollError.status === 403
+          ? t("result.unavailableForbiddenTitle")
+          : t("result.unavailableMissingTitle")
+      }
+      description={
+        pollError.status === 403
+          ? t("result.unavailableForbiddenDesc")
+          : t("result.unavailableMissingDesc")
+      }
       detail={pollError.message}
       backLabel={t("result.backOverview")}
       onGoHome={onGoHome}
@@ -322,20 +363,36 @@ export function ResultsWorkspace({
           {meetingId ? <span className="font-mono text-xs">{meetingId}</span> : null}
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          <StatChip label={t("label.sentiment")} value={sentimentLabel(visibleResult?.sentiment, t)} />
+          <StatChip
+            label={t("label.sentiment")}
+            value={sentimentLabel(visibleResult?.sentiment, t)}
+          />
           <StatChip label={t("label.actions")} value={visibleResult?.actions.length ?? "—"} />
           <StatChip label={t("label.diagrams")} value={visibleResult?.artifacts.length ?? "—"} />
           {jobId ? <StatChip label={t("label.status")} value={jobStateLine || "—"} /> : null}
-          {isTranslatedView ? <StatChip label={t("label.language")} value={translationLanguage.toUpperCase()} /> : null}
+          {isTranslatedView ? (
+            <StatChip label={t("label.language")} value={translationLanguage.toUpperCase()} />
+          ) : null}
         </div>
 
         <div className="mt-8 flex flex-col gap-3 rounded-lg border border-border/60 bg-background/80 p-2 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Button type="button" className="w-full gap-2 sm:w-auto" onClick={onDownloadMd} disabled={!visibleResult}>
+            <Button
+              type="button"
+              className="w-full gap-2 sm:w-auto"
+              onClick={onDownloadMd}
+              disabled={!visibleResult}
+            >
               <Download aria-hidden="true" className="h-4 w-4" />
               {t("result.download")}
             </Button>
-            <Button type="button" variant="outline" className="w-full gap-2 sm:w-auto" onClick={() => void onCopyReportLink()} disabled={!jobId}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2 sm:w-auto"
+              onClick={() => void onCopyReportLink()}
+              disabled={!jobId}
+            >
               <Link2 aria-hidden="true" className="h-4 w-4" />
               {t("result.copyLink")}
             </Button>
@@ -349,7 +406,9 @@ export function ResultsWorkspace({
               <select
                 className="h-9 min-w-32 flex-1 rounded-md border-0 bg-transparent px-1 text-sm text-foreground focus-visible:outline-none"
                 value={translationLanguage}
-                onChange={(event) => setTranslationLanguage(event.target.value as TranslationLanguage)}
+                onChange={(event) =>
+                  setTranslationLanguage(event.target.value as TranslationLanguage)
+                }
                 disabled={!result || isTranslating}
                 aria-label={t("result.translation")}
               >
@@ -367,11 +426,19 @@ export function ResultsWorkspace({
                 onClick={() => void onTranslateReport()}
                 disabled={!result || !jobId || !csrfReady || isTranslating}
               >
-                {isTranslating ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
+                {isTranslating ? (
+                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                ) : null}
                 {isTranslating ? t("result.translating") : t("result.translate")}
               </Button>
               {isTranslatedView ? (
-                <Button type="button" size="sm" variant="ghost" className="gap-2" onClick={() => setTranslatedResult(null)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="gap-2"
+                  onClick={() => setTranslatedResult(null)}
+                >
                   <RotateCcw aria-hidden="true" className="h-4 w-4" />
                   {t("result.original")}
                 </Button>
@@ -388,15 +455,43 @@ export function ResultsWorkspace({
               >
                 <FileDown aria-hidden="true" className="h-4 w-4" />
                 {t("result.moreExports")}
-                <ChevronDown aria-hidden="true" className={cn("h-4 w-4 transition-transform", exportMenuOpen && "rotate-180")} />
+                <ChevronDown
+                  aria-hidden="true"
+                  className={cn("h-4 w-4 transition-transform", exportMenuOpen && "rotate-180")}
+                />
               </Button>
               {exportMenuOpen ? (
                 <div className="absolute right-0 z-20 mt-2 w-full min-w-64 overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg sm:w-72">
-                  <ExportMenuButton icon={ClipboardList} label={t("result.copyBrief")} onClick={() => void onCopyBrief()} disabled={!visibleResult} />
-                  <ExportMenuButton icon={MessageSquareText} label={t("result.copySlack")} onClick={() => void onCopySlack()} disabled={!visibleResult} />
-                  <ExportMenuButton icon={CalendarDays} label={t("result.downloadIcs")} onClick={onDownloadIcs} disabled={!visibleResult} />
-                  <ExportMenuButton icon={Copy} label={t("result.copyAnalysisLink")} onClick={() => void onCopyReportLink()} disabled={!jobId} />
-                  <ExportMenuButton icon={MoreHorizontal} label={t("result.copyJob")} onClick={() => void onCopyJobId()} disabled={!jobId} />
+                  <ExportMenuButton
+                    icon={ClipboardList}
+                    label={t("result.copyBrief")}
+                    onClick={() => void onCopyBrief()}
+                    disabled={!visibleResult}
+                  />
+                  <ExportMenuButton
+                    icon={MessageSquareText}
+                    label={t("result.copySlack")}
+                    onClick={() => void onCopySlack()}
+                    disabled={!visibleResult}
+                  />
+                  <ExportMenuButton
+                    icon={CalendarDays}
+                    label={t("result.downloadIcs")}
+                    onClick={onDownloadIcs}
+                    disabled={!visibleResult}
+                  />
+                  <ExportMenuButton
+                    icon={Copy}
+                    label={t("result.copyAnalysisLink")}
+                    onClick={() => void onCopyReportLink()}
+                    disabled={!jobId}
+                  />
+                  <ExportMenuButton
+                    icon={MoreHorizontal}
+                    label={t("result.copyJob")}
+                    onClick={() => void onCopyJobId()}
+                    disabled={!jobId}
+                  />
                 </div>
               ) : null}
             </div>
@@ -474,15 +569,33 @@ export function ResultsWorkspace({
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
               <div className="min-w-0 space-y-6">
                 <section>
-                  <p className="ui-overline mb-3 text-[10px] text-primary">{t("result.executive")}</p>
+                  <p className="ui-overline mb-3 text-[10px] text-primary">
+                    {t("result.executive")}
+                  </p>
                   <div className="ui-prose-width">
-                    {visibleResult ? <ExecutiveBrief markdown={visibleResult.executiveBriefMarkdown} /> : <EmptyBlock>{t("result.awaiting")}</EmptyBlock>}
+                    {visibleResult ? (
+                      <ExecutiveBrief markdown={visibleResult.executiveBriefMarkdown} />
+                    ) : (
+                      <EmptyBlock>{t("result.awaiting")}</EmptyBlock>
+                    )}
                   </div>
                 </section>
                 <section className="grid gap-3 sm:grid-cols-3">
-                  <WorkspaceTile label={t("label.diagrams")} value={visibleResult?.artifacts.length ?? 0} onClick={() => setActiveView("diagrams")} />
-                  <WorkspaceTile label={t("label.actions")} value={visibleResult?.actions.length ?? 0} onClick={() => setActiveView("actions")} />
-                  <WorkspaceTile label={t("label.segments")} value={visibleResult?.transcriptSegments?.length ?? 0} onClick={() => setActiveView("transcript")} />
+                  <WorkspaceTile
+                    label={t("label.diagrams")}
+                    value={visibleResult?.artifacts.length ?? 0}
+                    onClick={() => setActiveView("diagrams")}
+                  />
+                  <WorkspaceTile
+                    label={t("label.actions")}
+                    value={visibleResult?.actions.length ?? 0}
+                    onClick={() => setActiveView("actions")}
+                  />
+                  <WorkspaceTile
+                    label={t("label.segments")}
+                    value={visibleResult?.transcriptSegments?.length ?? 0}
+                    onClick={() => setActiveView("transcript")}
+                  />
                 </section>
               </div>
               <aside className="space-y-4">
@@ -497,8 +610,12 @@ export function ResultsWorkspace({
                           className="w-full rounded-md border border-border/55 bg-background/65 px-3 py-2 text-left text-sm hover:border-primary/45"
                           onClick={() => setActiveView("actions")}
                         >
-                          <span className="line-clamp-2 font-medium text-foreground">{action.title}</span>
-                          <span className="mt-1 block text-[11px] text-muted-foreground">{action.owner} · {action.priority}</span>
+                          <span className="line-clamp-2 font-medium text-foreground">
+                            {action.title}
+                          </span>
+                          <span className="mt-1 block text-[11px] text-muted-foreground">
+                            {action.owner} · {action.priority}
+                          </span>
                         </button>
                       ))
                     ) : (
@@ -508,7 +625,11 @@ export function ResultsWorkspace({
                 </div>
                 <div className="rounded-lg border border-border/60 bg-muted/20 p-4">
                   <p className="ui-overline mb-3 text-[10px]">{t("result.distribution")}</p>
-                  <InsightStrip result={result} priorityInsight={priorityInsight} riskInsight={riskInsight} />
+                  <InsightStrip
+                    result={result}
+                    priorityInsight={priorityInsight}
+                    riskInsight={riskInsight}
+                  />
                 </div>
               </aside>
             </div>
@@ -516,12 +637,20 @@ export function ResultsWorkspace({
 
           {activeView === "diagrams" ? (
             <div className="space-y-4">
-              <WorkspaceHeader eyebrow={t("result.visualWorkspace")} title={t("label.diagrams")} description={t("result.diagramsDesc")} />
+              <WorkspaceHeader
+                eyebrow={t("result.visualWorkspace")}
+                title={t("label.diagrams")}
+                description={t("result.diagramsDesc")}
+              />
               {visibleResult?.artifacts.length && !pendingArtifacts.diagrams.active ? (
                 <DiagramGallery artifacts={visibleResult.artifacts} />
               ) : (
                 <OnDemandBlock
-                  title={diagramState === "generating" ? t("result.generatingDiagrams") : t("result.generateDiagrams")}
+                  title={
+                    diagramState === "generating"
+                      ? t("result.generatingDiagrams")
+                      : t("result.generateDiagrams")
+                  }
                   description={t("result.diagramsEmpty")}
                   action={t("result.generateDiagrams")}
                   loading={diagramState === "generating"}
@@ -537,12 +666,20 @@ export function ResultsWorkspace({
 
           {activeView === "actions" ? (
             <div className="space-y-4">
-              <WorkspaceHeader eyebrow={t("result.executionWorkspace")} title={t("label.actions")} description={t("result.actionsDesc")} />
+              <WorkspaceHeader
+                eyebrow={t("result.executionWorkspace")}
+                title={t("label.actions")}
+                description={t("result.actionsDesc")}
+              />
               {visibleResult?.actions.length && !pendingArtifacts.actions.active ? (
                 <ActionBoard actions={visibleResult.actions} jobId={jobId} />
               ) : (
                 <OnDemandBlock
-                  title={actionState === "generating" ? t("result.generatingActions") : t("result.generateActions")}
+                  title={
+                    actionState === "generating"
+                      ? t("result.generatingActions")
+                      : t("result.generateActions")
+                  }
                   description={t("result.actionsEmpty")}
                   action={t("result.generateActions")}
                   loading={actionState === "generating"}
@@ -558,9 +695,19 @@ export function ResultsWorkspace({
 
           {activeView === "transcript" ? (
             <div className="space-y-4">
-              <WorkspaceHeader eyebrow={t("result.sourceWorkspace")} title={t("label.transcript")} description={t("result.transcriptDesc")} />
+              <WorkspaceHeader
+                eyebrow={t("result.sourceWorkspace")}
+                title={t("label.transcript")}
+                description={t("result.transcriptDesc")}
+              />
               {visibleResult ? (
-                <TranscriptWorkspace jobId={jobId} result={visibleResult} csrfToken={csrfToken} csrfReady={csrfReady} onToast={flashCopied} />
+                <TranscriptWorkspace
+                  jobId={jobId}
+                  result={visibleResult}
+                  csrfToken={csrfToken}
+                  csrfReady={csrfReady}
+                  onToast={flashCopied}
+                />
               ) : (
                 <EmptyBlock>{t("result.transcriptUnavailable")}</EmptyBlock>
               )}
@@ -569,10 +716,34 @@ export function ResultsWorkspace({
 
           {activeView === "export" ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <ExportCard title="Report Markdown" description={t("result.exportMdDesc")} action={t("result.download")} onClick={onDownloadMd} disabled={!visibleResult} />
-              <ExportCard title="Brief" description={t("result.briefDesc")} action={t("result.copyBrief")} onClick={() => void onCopyBrief()} disabled={!visibleResult} />
-              <ExportCard title="Slack / Teams" description={t("result.slackDesc")} action={t("result.copySlack")} onClick={() => void onCopySlack()} disabled={!visibleResult} />
-              <ExportCard title={t("result.calendar")} description={t("result.calendarDesc")} action={t("result.downloadIcs")} onClick={onDownloadIcs} disabled={!visibleResult} />
+              <ExportCard
+                title="Report Markdown"
+                description={t("result.exportMdDesc")}
+                action={t("result.download")}
+                onClick={onDownloadMd}
+                disabled={!visibleResult}
+              />
+              <ExportCard
+                title="Brief"
+                description={t("result.briefDesc")}
+                action={t("result.copyBrief")}
+                onClick={() => void onCopyBrief()}
+                disabled={!visibleResult}
+              />
+              <ExportCard
+                title="Slack / Teams"
+                description={t("result.slackDesc")}
+                action={t("result.copySlack")}
+                onClick={() => void onCopySlack()}
+                disabled={!visibleResult}
+              />
+              <ExportCard
+                title={t("result.calendar")}
+                description={t("result.calendarDesc")}
+                action={t("result.downloadIcs")}
+                onClick={onDownloadIcs}
+                disabled={!visibleResult}
+              />
             </div>
           ) : null}
         </div>

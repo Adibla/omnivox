@@ -15,7 +15,7 @@ import type { StageContext, StageHandler } from "./stages/types";
 const workerEnv = getWorkerEnv();
 
 const redis = new IORedis(workerEnv.REDIS_URL, {
-  maxRetriesPerRequest: null
+  maxRetriesPerRequest: null,
 });
 
 const pipelineQueue = new Queue("pipeline", { connection: redis });
@@ -25,8 +25,8 @@ const openai = new OpenAI({
   apiKey: workerEnv.OPENAI_API_KEY,
   baseURL: workerEnv.OPENAI_BASE_URL,
   defaultHeaders: {
-    [workerEnv.OPENAI_ZDR_HEADER]: workerEnv.OPENAI_ZDR_VALUE
-  }
+    [workerEnv.OPENAI_ZDR_HEADER]: workerEnv.OPENAI_ZDR_VALUE,
+  },
 });
 
 const stageHandlers = {
@@ -34,13 +34,13 @@ const stageHandlers = {
   preprocess: processPreprocess,
   reasoning: processReasoning,
   actions: processActions,
-  diagrams: processDiagrams
+  diagrams: processDiagrams,
 } satisfies Record<string, StageHandler>;
 
 const stageContext: StageContext = {
   openai,
   pipelineQueue,
-  workerEnv
+  workerEnv,
 };
 
 async function processStage(stage: string, payload: PipelineMessage) {
@@ -61,8 +61,8 @@ export function startPipelineWorker() {
     },
     {
       connection: redis,
-      concurrency: 4
-    }
+      concurrency: 4,
+    },
   );
 
   worker.on("failed", async (job, error) => {
@@ -80,15 +80,15 @@ export function startPipelineWorker() {
         jobId: payload.data.jobId,
         stage: job.name,
         payload: payload.data,
-        error: error.message
+        error: error.message,
       },
       {
-        jobId: buildQueueJobId([payload.data.jobId, job.name, "dead"])
-      }
+        jobId: buildQueueJobId([payload.data.jobId, job.name, "dead"]),
+      },
     );
     await writeAudit(payload.data.jobId, "pipeline-failed", {
       stage: job.name,
-      error: error.message
+      error: error.message,
     });
   });
 

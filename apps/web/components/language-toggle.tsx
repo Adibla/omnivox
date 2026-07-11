@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const OPTIONS: { value: UiLocale; label: string }[] = [
   { value: "it", label: "IT" },
-  { value: "en", label: "EN" }
+  { value: "en", label: "EN" },
 ];
 
 export function LanguageToggle({ className }: { className?: string }) {
@@ -16,7 +16,10 @@ export function LanguageToggle({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn("inline-flex h-8 items-center gap-0.5 rounded-md border border-border bg-muted/50 p-0.5 shadow-sm", className)}
+      className={cn(
+        "inline-flex h-8 items-center gap-0.5 rounded-md border border-border bg-muted/50 p-0.5 shadow-sm",
+        className,
+      )}
       role="group"
       aria-label="Lingua interfaccia"
     >
@@ -32,7 +35,9 @@ export function LanguageToggle({ className }: { className?: string }) {
               size="sm"
               className="h-7 px-2 text-[11px]"
               onClick={() => setLocale(option.value)}
-              aria-label={option.value === "it" ? "Interfaccia in italiano" : "Interface in English"}
+              aria-label={
+                option.value === "it" ? "Interfaccia in italiano" : "Interface in English"
+              }
               aria-pressed={locale === option.value}
             >
               {option.label}

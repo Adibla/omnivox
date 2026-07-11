@@ -6,9 +6,11 @@ import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n-provider";
-import { cn } from "@/lib/utils";
 
-export function sentimentLabel(s: AnalysisOutput["sentiment"] | undefined, t: ReturnType<typeof useI18n>["t"]): string {
+export function sentimentLabel(
+  s: AnalysisOutput["sentiment"] | undefined,
+  t: ReturnType<typeof useI18n>["t"],
+): string {
   if (!s) {
     return "-";
   }
@@ -24,7 +26,9 @@ export function sentimentLabel(s: AnalysisOutput["sentiment"] | undefined, t: Re
 export function StatChip({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline gap-2 rounded-md border border-border/50 bg-muted/30 px-3 py-2">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <span className="text-sm font-semibold tabular-nums">{value}</span>
     </div>
   );
@@ -33,7 +37,7 @@ export function StatChip({ label, value }: { label: string; value: React.ReactNo
 export function InsightStrip({
   result,
   priorityInsight,
-  riskInsight
+  riskInsight,
 }: {
   result: AnalysisOutput | null;
   priorityInsight: { high: number; medium: number; low: number };
@@ -48,17 +52,29 @@ export function InsightStrip({
       <div>
         <p className="ui-overline mb-2 text-[10px]">{t("label.priority")}</p>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">{t("priority.high")} {priorityInsight.high}</Badge>
-          <Badge variant="outline">{t("priority.medium")} {priorityInsight.medium}</Badge>
-          <Badge variant="outline">{t("priority.low")} {priorityInsight.low}</Badge>
+          <Badge variant="outline">
+            {t("priority.high")} {priorityInsight.high}
+          </Badge>
+          <Badge variant="outline">
+            {t("priority.medium")} {priorityInsight.medium}
+          </Badge>
+          <Badge variant="outline">
+            {t("priority.low")} {priorityInsight.low}
+          </Badge>
         </div>
       </div>
       <div>
         <p className="ui-overline mb-2 text-[10px]">{t("label.risk")}</p>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">{t("risk.high")} {riskInsight.high}</Badge>
-          <Badge variant="outline">{t("risk.medium")} {riskInsight.medium}</Badge>
-          <Badge variant="outline">{t("risk.low")} {riskInsight.low}</Badge>
+          <Badge variant="outline">
+            {t("risk.high")} {riskInsight.high}
+          </Badge>
+          <Badge variant="outline">
+            {t("risk.medium")} {riskInsight.medium}
+          </Badge>
+          <Badge variant="outline">
+            {t("risk.low")} {riskInsight.low}
+          </Badge>
         </div>
       </div>
     </div>
@@ -73,7 +89,15 @@ export function EmptyBlock({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function WorkspaceHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+export function WorkspaceHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
   return (
     <header>
       <p className="ui-overline text-[10px]">{eyebrow}</p>
@@ -83,10 +107,24 @@ export function WorkspaceHeader({ eyebrow, title, description }: { eyebrow: stri
   );
 }
 
-export function WorkspaceTile({ label, value, onClick }: { label: string; value: React.ReactNode; onClick: () => void }) {
+export function WorkspaceTile({
+  label,
+  value,
+  onClick,
+}: {
+  label: string;
+  value: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
-    <button type="button" className="rounded-lg border border-border/60 bg-muted/20 p-4 text-left hover:border-primary/45 hover:bg-muted/30" onClick={onClick}>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+    <button
+      type="button"
+      className="rounded-lg border border-border/60 bg-muted/20 p-4 text-left hover:border-primary/45 hover:bg-muted/30"
+      onClick={onClick}
+    >
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-2 text-2xl font-semibold text-foreground tabular-nums">{value}</p>
     </button>
   );
@@ -96,7 +134,7 @@ export function ExportMenuButton({
   icon: Icon,
   label,
   disabled,
-  onClick
+  onClick,
 }: {
   icon: LucideIcon;
   label: string;
@@ -125,7 +163,7 @@ export function OnDemandBlock({
   timedOut,
   retryLabel,
   disabled,
-  onClick
+  onClick,
 }: {
   title: string;
   description: string;
@@ -145,7 +183,10 @@ export function OnDemandBlock({
         {loading ? (
           <div className="mx-auto mt-6 max-w-xs space-y-3" aria-hidden="true">
             <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out" style={{ width: `${Math.max(4, Math.min(100, progress))}%` }} />
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out"
+                style={{ width: `${Math.max(4, Math.min(100, progress))}%` }}
+              />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <span className="h-14 animate-pulse rounded-md border border-border/45 bg-background/70" />
@@ -155,7 +196,12 @@ export function OnDemandBlock({
           </div>
         ) : null}
         {timedOut ? <p className="mt-4 text-xs text-warning">{description}</p> : null}
-        <Button type="button" className="mt-5 gap-2" onClick={onClick} disabled={disabled || loading}>
+        <Button
+          type="button"
+          className="mt-5 gap-2"
+          onClick={onClick}
+          disabled={disabled || loading}
+        >
           {loading ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
           {loading ? title : timedOut && retryLabel ? retryLabel : action}
         </Button>
@@ -169,7 +215,7 @@ export function UnavailableReport({
   description,
   detail,
   backLabel,
-  onGoHome
+  onGoHome,
 }: {
   title: string;
   description: string;
@@ -183,7 +229,9 @@ export function UnavailableReport({
         <p className="ui-overline text-primary">Report</p>
         <h1 className="mt-3 text-2xl font-semibold text-foreground">{title}</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
-        <p className="mt-4 rounded-md border border-border/50 bg-muted/25 px-3 py-2 text-xs text-muted-foreground">{detail}</p>
+        <p className="mt-4 rounded-md border border-border/50 bg-muted/25 px-3 py-2 text-xs text-muted-foreground">
+          {detail}
+        </p>
         <div className="mt-6 flex justify-center">
           <Button type="button" onClick={onGoHome}>
             {backLabel}
@@ -199,7 +247,7 @@ export function ExportCard({
   description,
   action,
   disabled,
-  onClick
+  onClick,
 }: {
   title: string;
   description: string;
@@ -211,7 +259,13 @@ export function ExportCard({
     <div className="rounded-lg border border-border/60 bg-muted/20 p-5">
       <h3 className="text-base font-semibold text-foreground">{title}</h3>
       <p className="mt-2 min-h-12 text-sm text-muted-foreground">{description}</p>
-      <Button type="button" className="mt-5 w-full" variant="secondary" onClick={onClick} disabled={disabled}>
+      <Button
+        type="button"
+        className="mt-5 w-full"
+        variant="secondary"
+        onClick={onClick}
+        disabled={disabled}
+      >
         {action}
       </Button>
     </div>

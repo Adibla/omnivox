@@ -9,7 +9,7 @@ function getRedis() {
     return redis;
   }
   redis = new IORedis(getEnv().REDIS_URL, {
-    maxRetriesPerRequest: null
+    maxRetriesPerRequest: null,
   });
   return redis;
 }
@@ -28,7 +28,12 @@ function sessionKey(sessionId: string) {
 export async function storeAuthSession(input: { sessionId: string; session: StoredAuthSession }) {
   const expiresAt = input.session.refreshExpiresAt ?? input.session.identity.expiresAt;
   const ttlSeconds = Math.max(60, Math.floor((expiresAt - Date.now()) / 1000));
-  await getRedis().set(sessionKey(input.sessionId), JSON.stringify(input.session), "EX", ttlSeconds);
+  await getRedis().set(
+    sessionKey(input.sessionId),
+    JSON.stringify(input.session),
+    "EX",
+    ttlSeconds,
+  );
 }
 
 export async function getAuthSession(sessionId: string): Promise<StoredAuthSession | null> {

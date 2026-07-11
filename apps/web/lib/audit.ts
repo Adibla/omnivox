@@ -12,7 +12,7 @@ export function writeAudit(event: AuditEvent, payload: AuditPayload) {
   const entry = {
     event,
     at: new Date().toISOString(),
-    payload
+    payload,
   };
   process.stdout.write(`${JSON.stringify(entry)}\n`);
 }

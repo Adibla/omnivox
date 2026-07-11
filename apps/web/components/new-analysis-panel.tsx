@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileAudio, Info, Play, Settings2, UploadCloud, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  FileAudio,
+  Info,
+  Play,
+  Settings2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import {
   AUDIO_MAX_BYTES,
   SUPPORTED_AUDIO_ACCEPT,
@@ -9,7 +19,7 @@ import {
   getDefaultContentTypeForAudioFormat,
   resolveSupportedAudioFormat,
   type MeetingTemplate,
-  type OutputLanguage
+  type OutputLanguage,
 } from "@omnivox/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +37,7 @@ import {
   type ClientUploadPhase,
   pipelineStateLabelForLocale,
   pipelineProgressPercent,
-  uploadPhaseLabelForLocale
+  uploadPhaseLabelForLocale,
 } from "@/lib/pipeline-ui";
 
 const TEMPLATES: { value: MeetingTemplate; label: string }[] = [
@@ -35,7 +45,7 @@ const TEMPLATES: { value: MeetingTemplate; label: string }[] = [
   { value: "standup", label: "Daily / Stand-up" },
   { value: "board", label: "Board / Steering" },
   { value: "client", label: "Cliente" },
-  { value: "retro", label: "Retrospettiva" }
+  { value: "retro", label: "Retrospettiva" },
 ];
 
 const LANG_OPTIONS = [
@@ -43,10 +53,12 @@ const LANG_OPTIONS = [
   { value: "en", label: "English" },
   { value: "de", label: "Deutsch" },
   { value: "fr", label: "Français" },
-  { value: "es", label: "Español" }
+  { value: "es", label: "Español" },
 ];
 
-const SUPPORTED_AUDIO_LABEL = SUPPORTED_AUDIO_FORMATS.map((format) => format.toUpperCase()).join(", ");
+const SUPPORTED_AUDIO_LABEL = SUPPORTED_AUDIO_FORMATS.map((format) => format.toUpperCase()).join(
+  ", ",
+);
 const AUDIO_MAX_MB = Math.floor(AUDIO_MAX_BYTES / (1024 * 1024));
 
 function slugifyMeetingId(value: string): string {
@@ -77,7 +89,10 @@ function validateAudioFile(nextFile: File | null, locale: string): string {
   if (!nextFile) {
     return "";
   }
-  const audioFormat = resolveSupportedAudioFormat({ fileName: nextFile.name, contentType: nextFile.type });
+  const audioFormat = resolveSupportedAudioFormat({
+    fileName: nextFile.name,
+    contentType: nextFile.type,
+  });
   if (!audioFormat) {
     return locale === "en"
       ? `Unsupported format. Use: ${SUPPORTED_AUDIO_LABEL}.`
@@ -111,7 +126,7 @@ export function NewAnalysisPanel({
   pollError,
   isTerminal,
   activeJobId,
-  onJobStarted
+  onJobStarted,
 }: NewAnalysisPanelProps) {
   const { t, locale } = useI18n();
   const { csrfToken, ready: csrfReady } = useSessionCsrf();
@@ -174,12 +189,15 @@ export function NewAnalysisPanel({
       setError("Seleziona un file audio.");
       return;
     }
-    const audioFormat = resolveSupportedAudioFormat({ fileName: file.name, contentType: file.type });
+    const audioFormat = resolveSupportedAudioFormat({
+      fileName: file.name,
+      contentType: file.type,
+    });
     if (!audioFormat) {
       setError(
         locale === "en"
           ? `Unsupported format. Use: ${SUPPORTED_AUDIO_LABEL}.`
-          : `Formato non supportato. Usa: ${SUPPORTED_AUDIO_LABEL}.`
+          : `Formato non supportato. Usa: ${SUPPORTED_AUDIO_LABEL}.`,
       );
       return;
     }
@@ -187,7 +205,7 @@ export function NewAnalysisPanel({
       setError(
         locale === "en"
           ? `File too large. Current limit: ${AUDIO_MAX_MB} MB.`
-          : `File troppo grande. Limite attuale: ${AUDIO_MAX_MB} MB.`
+          : `File troppo grande. Limite attuale: ${AUDIO_MAX_MB} MB.`,
       );
       return;
     }
@@ -213,8 +231,8 @@ export function NewAnalysisPanel({
           audioFormat,
           contentLength: file.size,
           sha256: localSha256,
-          retentionClass: "standard"
-        })
+          retentionClass: "standard",
+        }),
       });
       if (!presignResponse.ok) {
         throw new Error(await parseFailedResponse(presignResponse));
@@ -231,15 +249,15 @@ export function NewAnalysisPanel({
         method: "PUT",
         headers: {
           "content-type": file.type || getDefaultContentTypeForAudioFormat(audioFormat),
-          ...presignPayload.requiredHeaders
+          ...presignPayload.requiredHeaders,
         },
-        body: file
+        body: file,
       });
       if (!putResponse.ok) {
         throw new Error(
           locale === "en"
             ? `Audio upload failed (HTTP ${putResponse.status}).`
-            : `Upload audio non riuscito (HTTP ${putResponse.status}).`
+            : `Upload audio non riuscito (HTTP ${putResponse.status}).`,
         );
       }
       const etag = putResponse.headers.get("etag") ?? "missing-etag";
@@ -252,8 +270,8 @@ export function NewAnalysisPanel({
           meetingId: safeMeetingId,
           objectKey: presignPayload.objectKey,
           etag,
-          localSha256
-        })
+          localSha256,
+        }),
       });
       if (!completeResponse.ok) {
         throw new Error(await parseFailedResponse(completeResponse));
@@ -270,8 +288,8 @@ export function NewAnalysisPanel({
           transcriptText: transcriptText.trim().length >= 40 ? transcriptText.trim() : undefined,
           meetingTemplate,
           outputLanguage,
-          languageHint
-        })
+          languageHint,
+        }),
       });
       if (!startResponse.ok) {
         throw new Error(await parseFailedResponse(startResponse));
@@ -281,7 +299,7 @@ export function NewAnalysisPanel({
       onJobStarted({
         jobId: started.jobId,
         meetingId: safeMeetingId,
-        title: displayTitle
+        title: displayTitle,
       });
     } catch (runError) {
       setUploadPhase("idle");
@@ -297,18 +315,24 @@ export function NewAnalysisPanel({
     {
       value: "auto",
       label: locale === "en" ? "Automatic" : "Automatico",
-      hint: locale === "en" ? "Follows the content language" : "Segue la lingua del contenuto"
+      hint: locale === "en" ? "Follows the content language" : "Segue la lingua del contenuto",
     },
     {
       value: "it",
       label: "Italiano",
-      hint: locale === "en" ? "Brief, actions and diagrams in Italian" : "Brief, azioni e diagrammi in italiano"
+      hint:
+        locale === "en"
+          ? "Brief, actions and diagrams in Italian"
+          : "Brief, azioni e diagrammi in italiano",
     },
     {
       value: "en",
       label: "English",
-      hint: locale === "en" ? "Brief, actions and diagrams in English" : "Brief, azioni e diagrammi in inglese"
-    }
+      hint:
+        locale === "en"
+          ? "Brief, actions and diagrams in English"
+          : "Brief, azioni e diagrammi in inglese",
+    },
   ];
 
   return (
@@ -316,9 +340,7 @@ export function NewAnalysisPanel({
       <header className="border-b border-border/50 pb-8">
         <p className="ui-overline text-primary">{t("new.flow")}</p>
         <h1 className="mt-3 text-display sm:text-4xl">{t("new.title")}</h1>
-        <p className="mt-4 max-w-2xl text-body">
-          {t("new.copy")}
-        </p>
+        <p className="mt-4 max-w-2xl text-body">{t("new.copy")}</p>
       </header>
 
       <div className="ui-panel space-y-6 p-6 sm:p-8">
@@ -328,7 +350,9 @@ export function NewAnalysisPanel({
             {t("new.technical")}
           </summary>
           <div className="flex flex-wrap items-center gap-2 border-t border-border/40 px-3 py-2 text-xs text-muted-foreground">
-            <Badge variant="outline">{locale === "en" ? "Direct upload" : "Caricamento diretto"}</Badge>
+            <Badge variant="outline">
+              {locale === "en" ? "Direct upload" : "Caricamento diretto"}
+            </Badge>
             <span>{t("new.technicalCopy")}</span>
           </div>
         </details>
@@ -337,7 +361,7 @@ export function NewAnalysisPanel({
           {[
             { label: t("new.step.detail"), icon: CheckCircle2 },
             { label: t("new.step.audio"), icon: FileAudio },
-            { label: t("new.step.start"), icon: Play }
+            { label: t("new.step.start"), icon: Play },
           ].map((item, step) => (
             <Button
               key={step}
@@ -349,7 +373,9 @@ export function NewAnalysisPanel({
               disabled={isRunning}
             >
               <item.icon aria-hidden="true" />
-              <span className="text-xs">{step + 1}. {item.label}</span>
+              <span className="text-xs">
+                {step + 1}. {item.label}
+              </span>
             </Button>
           ))}
         </div>
@@ -369,7 +395,11 @@ export function NewAnalysisPanel({
               <p className="text-xs text-muted-foreground">{t("new.meetingIdHelp")}</p>
             </div>
             <div className="flex justify-end">
-              <Button type="button" onClick={() => setWizardStep(1)} disabled={!canProceedStep0 || isRunning}>
+              <Button
+                type="button"
+                onClick={() => setWizardStep(1)}
+                disabled={!canProceedStep0 || isRunning}
+              >
                 {t("new.next")}
                 <ArrowRight aria-hidden="true" />
               </Button>
@@ -393,9 +423,13 @@ export function NewAnalysisPanel({
                 <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-transform group-hover:scale-105">
                   <UploadCloud aria-hidden="true" />
                 </span>
-                <span className="mt-3 text-sm font-medium">{file ? file.name : t("new.fileDrop")}</span>
+                <span className="mt-3 text-sm font-medium">
+                  {file ? file.name : t("new.fileDrop")}
+                </span>
                 <span className="mt-1 text-xs text-muted-foreground">
-                  {file ? `${formatBytes(file.size)} · ${resolveSupportedAudioFormat({ fileName: file.name, contentType: file.type })?.toUpperCase() ?? "Audio"}` : `Max ${AUDIO_MAX_MB} MB`}
+                  {file
+                    ? `${formatBytes(file.size)} · ${resolveSupportedAudioFormat({ fileName: file.name, contentType: file.type })?.toUpperCase() ?? "Audio"}`
+                    : `Max ${AUDIO_MAX_MB} MB`}
                 </span>
               </label>
               <Input
@@ -412,7 +446,15 @@ export function NewAnalysisPanel({
                     <p className="truncate text-sm font-medium">{file.name}</p>
                     <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
                   </div>
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => selectFile(null)} disabled={isRunning} aria-label={t("new.removeFile")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => selectFile(null)}
+                    disabled={isRunning}
+                    aria-label={t("new.removeFile")}
+                  >
                     <X aria-hidden="true" />
                   </Button>
                 </div>
@@ -466,13 +508,15 @@ export function NewAnalysisPanel({
                 <Label htmlFor="audio-lang">{t("new.audioLanguage")}</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button type="button" className="text-xs text-muted-foreground underline decoration-dotted" aria-label={t("new.audioLanguageHelp")}>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground underline decoration-dotted"
+                      aria-label={t("new.audioLanguageHelp")}
+                    >
                       <Info aria-hidden="true" className="h-3.5 w-3.5" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    {t("new.audioLanguageHelp")}
-                  </TooltipContent>
+                  <TooltipContent className="max-w-xs">{t("new.audioLanguageHelp")}</TooltipContent>
                 </Tooltip>
               </div>
               <select
@@ -490,11 +534,20 @@ export function NewAnalysisPanel({
               </select>
             </div>
             <div className="md:col-span-2 flex justify-between">
-              <Button type="button" variant="ghost" onClick={() => setWizardStep(0)} disabled={isRunning}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setWizardStep(0)}
+                disabled={isRunning}
+              >
                 <ArrowLeft aria-hidden="true" />
                 {t("new.back")}
               </Button>
-              <Button type="button" onClick={() => setWizardStep(2)} disabled={!canProceedStep1 || isRunning}>
+              <Button
+                type="button"
+                onClick={() => setWizardStep(2)}
+                disabled={!canProceedStep1 || isRunning}
+              >
                 {t("new.next")}
                 <ArrowRight aria-hidden="true" />
               </Button>
@@ -518,30 +571,52 @@ export function NewAnalysisPanel({
               </div>
             </details>
             <div className="flex flex-wrap justify-between gap-2">
-              <Button type="button" variant="ghost" onClick={() => setWizardStep(1)} disabled={isRunning}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setWizardStep(1)}
+                disabled={isRunning}
+              >
                 <ArrowLeft aria-hidden="true" />
                 {t("new.back")}
               </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <Button type="button" size="lg" className="h-12 px-5 text-base shadow-sm" onClick={() => void runPipeline()} disabled={!csrfReady || isRunning || !file || Boolean(fileError)}>
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="h-12 px-5 text-base shadow-sm"
+                      onClick={() => void runPipeline()}
+                      disabled={!csrfReady || isRunning || !file || Boolean(fileError)}
+                    >
                       <Play aria-hidden="true" />
                       {isRunning ? t("new.running") : t("new.run")}
                     </Button>
                   </span>
                 </TooltipTrigger>
-                {!csrfReady ? <TooltipContent>{locale === "en" ? "Waiting for the session token..." : "Attendere il token di sessione..."}</TooltipContent> : null}
+                {!csrfReady ? (
+                  <TooltipContent>
+                    {locale === "en"
+                      ? "Waiting for the session token..."
+                      : "Attendere il token di sessione..."}
+                  </TooltipContent>
+                ) : null}
               </Tooltip>
             </div>
           </div>
         ) : null}
 
-        <div className="min-h-[104px] rounded-lg border border-border/50 bg-muted/20 p-4" aria-live="polite">
+        <div
+          className="min-h-[104px] rounded-lg border border-border/50 bg-muted/20 p-4"
+          aria-live="polite"
+        >
           {showPipelineProgress ? (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="font-medium text-foreground">{statusLine || t("new.progress")}</span>
+                <span className="font-medium text-foreground">
+                  {statusLine || t("new.progress")}
+                </span>
                 <span className="text-xs tabular-nums text-muted-foreground">{progressValue}%</span>
               </div>
               <Progress value={progressValue} />

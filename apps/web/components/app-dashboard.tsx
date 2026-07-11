@@ -15,7 +15,7 @@ import {
   loadRecentMeetings,
   type RecentMeeting,
   removeRecentMeeting,
-  upsertRecentMeeting
+  upsertRecentMeeting,
 } from "@/lib/recent-meetings";
 
 type DashboardView = "overview" | "new" | "results";
@@ -88,9 +88,21 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
   const processedTerminalKeyRef = useRef<string | null>(null);
   const startedJobIdsRef = useRef<Set<string>>(new Set());
   const resultCacheRef = useRef<Map<string, AnalysisOutput>>(new Map());
-  const { csrfToken, ready: sessionReady, authMode, authenticated, tenantId, user } = useSessionCsrf();
+  const {
+    csrfToken,
+    ready: sessionReady,
+    authMode,
+    authenticated,
+    tenantId,
+    user,
+  } = useSessionCsrf();
 
-  const { job, pollError, isLoading: isJobLoading, isTerminal } = usePipelineJob(activeJobId, { enabled: Boolean(activeJobId) });
+  const {
+    job,
+    pollError,
+    isLoading: isJobLoading,
+    isTerminal,
+  } = usePipelineJob(activeJobId, { enabled: Boolean(activeJobId) });
 
   useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "true");
@@ -174,7 +186,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
 
   useEffect(() => {
     processedTerminalKeyRef.current = null;
-    setResult(activeJobId ? resultCacheRef.current.get(activeJobId) ?? null : null);
+    setResult(activeJobId ? (resultCacheRef.current.get(activeJobId) ?? null) : null);
   }, [activeJobId]);
 
   useEffect(() => {
@@ -182,7 +194,8 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
       return;
     }
     const meetingId = resultContext?.meetingId ?? job.meetingId ?? "";
-    const title = resultContext?.title?.trim() || job.displayTitle?.trim() || meetingId || job.jobId;
+    const title =
+      resultContext?.title?.trim() || job.displayTitle?.trim() || meetingId || job.jobId;
     const terminalKey = `${job.jobId}:${job.state}`;
     const recentActiveItem = recent.find((item) => item.jobId === job.jobId);
     const shouldUpdateRecent =
@@ -193,7 +206,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
     if (!resultContext && (job.meetingId || job.jobId)) {
       setResultContext({
         meetingId: job.meetingId ?? job.jobId,
-        title: job.displayTitle?.trim() || job.meetingId || job.jobId
+        title: job.displayTitle?.trim() || job.meetingId || job.jobId,
       });
     }
 
@@ -213,7 +226,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
           status: "completed",
           updatedAt: new Date().toISOString(),
           actionCount: job.result.actions.length,
-          diagramCount: job.result.artifacts.length
+          diagramCount: job.result.artifacts.length,
         });
         refreshRecent();
       } else if (shouldUpdateRecent) {
@@ -225,9 +238,9 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
             status: "completed",
             updatedAt: new Date().toISOString(),
             actionCount: job.result?.actions.length,
-            diagramCount: job.result?.artifacts.length
+            diagramCount: job.result?.artifacts.length,
           },
-          ...items.filter((item) => item.jobId !== job.jobId)
+          ...items.filter((item) => item.jobId !== job.jobId),
         ]);
       }
       setView("results");
@@ -246,7 +259,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
           meetingId: meetingId || job.jobId,
           title,
           status: "failed",
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         });
         refreshRecent();
       }
@@ -254,43 +267,48 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
     }
   }, [authMode, job, recent, resultContext, refreshRecent]);
 
-  const handleJobStarted = useCallback((payload: { jobId: string; meetingId: string; title: string }) => {
-    startedJobIdsRef.current.add(payload.jobId);
-    rememberStartedJob(payload.jobId);
-    setActiveJobId(payload.jobId);
-    setResultContext({
-      meetingId: payload.meetingId,
-      title: payload.title
-    });
-    if (authMode === "disabled") {
-      upsertRecentMeeting({
-        jobId: payload.jobId,
+  const handleJobStarted = useCallback(
+    (payload: { jobId: string; meetingId: string; title: string }) => {
+      startedJobIdsRef.current.add(payload.jobId);
+      rememberStartedJob(payload.jobId);
+      setActiveJobId(payload.jobId);
+      setResultContext({
         meetingId: payload.meetingId,
-        title: payload.title || payload.meetingId,
-        status: "in_progress",
-        updatedAt: new Date().toISOString()
+        title: payload.title,
       });
-      refreshRecent();
-    }
-    router.push(`/executions/${encodeURIComponent(payload.jobId)}`);
-  }, [authMode, refreshRecent, router]);
+      if (authMode === "disabled") {
+        upsertRecentMeeting({
+          jobId: payload.jobId,
+          meetingId: payload.meetingId,
+          title: payload.title || payload.meetingId,
+          status: "in_progress",
+          updatedAt: new Date().toISOString(),
+        });
+        refreshRecent();
+      }
+      router.push(`/executions/${encodeURIComponent(payload.jobId)}`);
+    },
+    [authMode, refreshRecent, router],
+  );
 
-  const openRecent = useCallback((item: RecentMeeting) => {
-    if (item.jobId === activeJobId) {
+  const openRecent = useCallback(
+    (item: RecentMeeting) => {
+      if (item.jobId === activeJobId) {
+        setView("results");
+        setMobileNavOpen(false);
+        return;
+      }
+      setResultContext({
+        meetingId: item.meetingId,
+        title: item.title,
+      });
+      setActiveJobId(item.jobId);
       setView("results");
       setMobileNavOpen(false);
-      return;
-    }
-    setResultContext({
-      meetingId: item.meetingId,
-      title: item.title
-    });
-    setActiveJobId(item.jobId);
-    setView("results");
-    setMobileNavOpen(false);
-    window.history.pushState(null, "", `/executions/${encodeURIComponent(item.jobId)}`);
-  }, [activeJobId]);
-
+      window.history.pushState(null, "", `/executions/${encodeURIComponent(item.jobId)}`);
+    },
+    [activeJobId],
+  );
 
   const handleRemoveRecent = useCallback(
     (jobId: string, e: MouseEvent) => {
@@ -298,7 +316,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
       if (authMode === "keycloak" && authenticated && csrfToken) {
         void fetch(`/api/v1/executions/${jobId}`, {
           method: "DELETE",
-          headers: { "x-csrf-token": csrfToken }
+          headers: { "x-csrf-token": csrfToken },
         });
         setRecent((items) => items.filter((item) => item.jobId !== jobId));
       } else {
@@ -312,14 +330,13 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
         router.push("/");
       }
     },
-    [activeJobId, authMode, authenticated, csrfToken, refreshRecent, router]
+    [activeJobId, authMode, authenticated, csrfToken, refreshRecent, router],
   );
 
   const requestRemoveRecent = useCallback((jobId: string, e: MouseEvent) => {
     e.stopPropagation();
     setConfirmDeleteJobId((current) => (current === jobId ? null : jobId));
   }, []);
-
 
   const handleLogout = useCallback(async () => {
     const response = await fetch("/api/v1/auth/logout", { method: "POST" });
@@ -363,7 +380,10 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
   if (!sessionReady || (authMode === "keycloak" && !authenticated)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" aria-label="Loading" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary"
+          aria-label="Loading"
+        />
       </div>
     );
   }
@@ -426,7 +446,9 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
       header={
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">{topbarTitle}</p>
-          {topbarMeta ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{topbarMeta}</p> : null}
+          {topbarMeta ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{topbarMeta}</p>
+          ) : null}
         </div>
       }
     >

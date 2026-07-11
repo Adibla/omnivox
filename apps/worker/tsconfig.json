@@ -1,14 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
     "outDir": "dist",
     "rootDir": ".",
@@ -16,12 +12,6 @@
     "incremental": true,
     "isolatedModules": true
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".next"
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", ".next"]
 }

@@ -74,7 +74,10 @@ export function buildDiagramNodeInventory(svg: SVGSVGElement): DiagramNodeInvent
 }
 
 export function findDiagramNodeByKey(svg: SVGSVGElement, key: string): SVGGElement | null {
-  const safe = typeof CSS !== "undefined" && typeof CSS.escape === "function" ? CSS.escape(key) : key.replace(/"/g, '\\"');
+  const safe =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(key)
+      : key.replace(/"/g, '\\"');
   const el = svg.querySelector(`[data-omni-diagram-key="${safe}"]`);
   return el instanceof SVGGElement ? el : null;
 }

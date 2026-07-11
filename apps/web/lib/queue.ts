@@ -2,7 +2,12 @@ import { Queue } from "bullmq";
 import IORedis from "ioredis";
 import { getEnv } from "./env";
 
-export type PipelineQueueJobName = "transcription" | "preprocess" | "reasoning" | "diagrams" | "actions";
+export type PipelineQueueJobName =
+  | "transcription"
+  | "preprocess"
+  | "reasoning"
+  | "diagrams"
+  | "actions";
 
 let redisConnection: IORedis | null = null;
 let pipelineQueue: Queue | null = null;
@@ -17,7 +22,7 @@ function getRedis() {
     return redisConnection;
   }
   redisConnection = new IORedis(getEnv().REDIS_URL, {
-    maxRetriesPerRequest: null
+    maxRetriesPerRequest: null,
   });
   return redisConnection;
 }
@@ -27,7 +32,7 @@ export function getPipelineQueue() {
     return pipelineQueue;
   }
   pipelineQueue = new Queue("pipeline", {
-    connection: getRedis()
+    connection: getRedis(),
   });
   return pipelineQueue;
 }
@@ -37,7 +42,7 @@ export function getDeadLetterQueue() {
     return deadLetterQueue;
   }
   deadLetterQueue = new Queue("pipeline_dead_letter", {
-    connection: getRedis()
+    connection: getRedis(),
   });
   return deadLetterQueue;
 }
@@ -56,10 +61,10 @@ export async function enqueuePipelineStage(input: {
     attempts: 3,
     backoff: {
       type: "exponential",
-      delay: 500
+      delay: 500,
     },
     removeOnComplete: true,
-    removeOnFail: false
+    removeOnFail: false,
   });
 }
 
@@ -72,10 +77,10 @@ export async function enqueueDeadLetter(input: {
   await getDeadLetterQueue().add(
     "dead_letter",
     {
-      ...input
+      ...input,
     },
     {
-      jobId: buildQueueJobId([input.jobId, input.stage, "dead"])
-    }
+      jobId: buildQueueJobId([input.jobId, input.stage, "dead"]),
+    },
   );
 }

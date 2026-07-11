@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { MeetingTemplateSchema, OutputLanguageSchema, TranscriptSegmentSchema } from "./schemas";
 
-export const PipelineStageSchema = z.enum(["transcription", "preprocess", "reasoning", "actions", "diagrams"]);
+export const PipelineStageSchema = z.enum([
+  "transcription",
+  "preprocess",
+  "reasoning",
+  "actions",
+  "diagrams",
+]);
 
 export const PipelineMessageSchema = z.object({
   jobId: z.string().uuid(),
@@ -13,7 +19,7 @@ export const PipelineMessageSchema = z.object({
   participants: z.array(z.string().min(1)).optional(),
   meetingTemplate: MeetingTemplateSchema.optional(),
   outputLanguage: OutputLanguageSchema.optional(),
-  languageHint: z.string().min(2).max(8).optional()
+  languageHint: z.string().min(2).max(8).optional(),
 });
 
 export type PipelineStage = z.infer<typeof PipelineStageSchema>;
