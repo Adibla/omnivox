@@ -47,6 +47,17 @@ The AI backend is configurable. You can use an OpenAI business/API key, or point
 
 ## Local Setup
 
+The fastest path is the bootstrap script: it creates the env files, installs dependencies, starts the compose stack, waits for the healthchecks, and applies the database migrations.
+
+```bash
+npm run setup        # macOS / Linux
+scripts/setup.ps1    # Windows (PowerShell)
+```
+
+After it finishes, set `OPENAI_API_KEY` in `apps/web/.env.local` and `apps/worker/.env.local`, then jump to step 5.
+
+Alternatively, the manual steps:
+
 1. Start the local infrastructure:
 
 ```bash
