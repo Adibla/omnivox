@@ -172,7 +172,7 @@ export function decodeSession(value: string): AppSession {
   };
 }
 
-function encodeSession(input: AppSession) {
+export function encodeSession(input: AppSession) {
   return encodeSigned({
     tenantId: input.tenantId,
     csrfToken: input.csrfToken,

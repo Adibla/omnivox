@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   PresignRequestSchema,
   AnalysisOutputSchema,
-  PipelineStartRequestSchema
+  PipelineStartRequestSchema,
 } from "@omnivox/shared";
 
 describe("contract schemas", () => {
@@ -14,9 +14,25 @@ describe("contract schemas", () => {
       audioFormat: "ogg",
       contentLength: 1024,
       sha256: "a".repeat(64),
-      retentionClass: "standard"
+      retentionClass: "standard",
     });
     expect(value.tenantId).toBe("acme-team");
+  });
+
+  it("rejects presign when audioFormat and contentType disagree", () => {
+    // mp3 is the only audioFormat the client is allowed to declare; if it
+    // arrives with a different content-type the superRefine must reject.
+    expect(() =>
+      PresignRequestSchema.parse({
+        tenantId: "acme-team",
+        meetingId: "meeting_001",
+        contentType: "audio/wav",
+        audioFormat: "mp3",
+        contentLength: 1024,
+        sha256: "a".repeat(64),
+        retentionClass: "standard",
+      }),
+    ).toThrowError(/audioFormat is not compatible with contentType/);
   });
 
   it("rejects invalid pipeline start", () => {
@@ -24,15 +40,15 @@ describe("contract schemas", () => {
       PipelineStartRequestSchema.parse({
         meetingId: "m",
         objectKey: "",
-        languageHint: "it"
-      })
+        languageHint: "it",
+      }),
     ).toThrowError();
   });
 
   it("applies defaults for meeting template and automatic output language", () => {
     const value = PipelineStartRequestSchema.parse({
       meetingId: "meeting_001",
-      objectKey: "tenant/2026/01/x.ogg"
+      objectKey: "tenant/2026/01/x.ogg",
     });
     expect(value.meetingTemplate).toBe("generic");
     expect(value.outputLanguage).toBe("auto");
@@ -42,16 +58,17 @@ describe("contract schemas", () => {
     expect(() =>
       AnalysisOutputSchema.parse({
         executiveBriefMarkdown: "too short",
-        sentiment: "neutral"
-      })
+        sentiment: "neutral",
+      }),
     ).toThrowError();
   });
 
   it("accepts a base analysis before on-demand artifacts", () => {
     const value = AnalysisOutputSchema.parse({
-      executiveBriefMarkdown: "# Brief\n\nContenuto sufficiente per rappresentare una sintesi base della riunione.",
+      executiveBriefMarkdown:
+        "# Brief\n\nContenuto sufficiente per rappresentare una sintesi base della riunione.",
       sentiment: "neutral",
-      normalizedTranscript: "x".repeat(40)
+      normalizedTranscript: "x".repeat(40),
     });
     expect(value.actions).toEqual([]);
     expect(value.artifacts).toEqual([]);
@@ -61,13 +78,14 @@ describe("contract schemas", () => {
 
   it("accepts optional transcript fields on analysis output", () => {
     const value = AnalysisOutputSchema.parse({
-      executiveBriefMarkdown: "# Brief\n\nContenuto sufficientemente lungo per superare la validazione minima.",
+      executiveBriefMarkdown:
+        "# Brief\n\nContenuto sufficientemente lungo per superare la validazione minima.",
       artifacts: [
         {
           title: "Diagram one",
           diagramType: "flowchart",
-          mermaidCode: "flowchart TD\n  A --> B[Example node with enough chars]"
-        }
+          mermaidCode: "flowchart TD\n  A --> B[Example node with enough chars]",
+        },
       ],
       actions: [
         {
@@ -78,13 +96,13 @@ describe("contract schemas", () => {
           risk: "low",
           actionType: "follow_up",
           id: "action-test",
-          status: "in_progress"
-        }
+          status: "in_progress",
+        },
       ],
       sentiment: "neutral",
       normalizedTranscript: "x".repeat(40),
       participants: ["Alice", "Bob"],
-      transcriptSegments: [{ startSec: 0, endSec: 2.5, text: "Hello team." }]
+      transcriptSegments: [{ startSec: 0, endSec: 2.5, text: "Hello team." }],
     });
     expect(value.participants?.length).toBe(2);
     expect(value.transcriptSegments?.[0]?.startSec).toBe(0);
