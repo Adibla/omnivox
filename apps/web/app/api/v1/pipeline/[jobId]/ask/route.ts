@@ -78,12 +78,12 @@ export async function POST(request: Request, context: RouteContext) {
         {
           role: "system",
           content:
-            "Sei un assistente che risponde solo in base al materiale fornito (trascrizione e estratto di brief). " +
-            "Se l'informazione non è presente, dillo chiaramente. Rispondi in italiano, in modo conciso e professionale.",
+            "You are an assistant that answers only from the provided material (meeting transcript and brief excerpt). " +
+            "If the information is not present, say so clearly. Answer in the same language as the question, concisely and professionally.",
         },
         {
           role: "user",
-          content: `Estratto brief (contesto):\n---\n${briefSnippet}\n---\n\nTrascrizione riunione:\n---\n${transcript.slice(0, 120_000)}\n---\n\nDomanda: ${body.question}`,
+          content: `Brief excerpt (context):\n---\n${briefSnippet}\n---\n\nMeeting transcript:\n---\n${transcript.slice(0, 120_000)}\n---\n\nQuestion: ${body.question}`,
         },
       ],
       max_tokens: 600,
