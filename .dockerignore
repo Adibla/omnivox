@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/*.tsbuildinfo
+.git
+.github
+.env
+.env.*
+**/.env
+**/.env.local
+packages/wasm-audio/cpp/build

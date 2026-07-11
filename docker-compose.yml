@@ -1,3 +1,5 @@
+name: omnivox
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -78,6 +80,78 @@ services:
       mc mb --ignore-existing local/omnivox &&
       mc cors set local/omnivox /tmp/cors.json
       "
+
+  # --- application (opt-in) ---------------------------------------------------
+  # `docker compose --profile app up -d --build` runs the full stack, including
+  # web and worker, with no local Node.js required. Set OPENAI_API_KEY and
+  # SESSION_SECRET in a root `.env` file first (see `.env.example`).
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: omnivox-migrate
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/omnivox
+    working_dir: /app
+    command: ["node", "scripts/migrate.mjs"]
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: omnivox-web
+    profiles: ["app"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/omnivox
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      # Presigned URLs are opened by the browser, so they are signed against
+      # the host-published MinIO port, not the internal service name.
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?set OPENAI_API_KEY in a root .env file}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in a root .env file}
+      AUTH_MODE: disabled
+      APP_BASE_URL: http://localhost:3000
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: omnivox-worker
+    profiles: ["app"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "4010:4010"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/omnivox
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?set OPENAI_API_KEY in a root .env file}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+    restart: unless-stopped
 
 volumes:
   postgres_data:

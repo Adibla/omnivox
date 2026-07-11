@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
+    "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -23,12 +23,12 @@
     "ioredis": "^5.8.0",
     "openai": "^4.104.0",
     "pg": "^8.16.3",
+    "tsx": "^4.20.3",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
     "@types/pg": "^8.20.0",
-    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }
