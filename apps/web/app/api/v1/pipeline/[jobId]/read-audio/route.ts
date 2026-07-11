@@ -3,9 +3,10 @@ import {
   ensureSessionCookie,
   requireAuthenticatedSession,
   resolveSessionTenantId,
-  validateCsrf
+  validateCsrf,
 } from "@/lib/auth";
-import { fail, ok } from "@/lib/http";
+import { describeError, fail, getCorrelationId, ok } from "@/lib/http";
+import { logError } from "@/lib/logger";
 import { getJobById } from "@/lib/pipeline-db-store";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createPresignedReadUrl } from "@/lib/s3";
@@ -20,7 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
     try {
       requireAuthenticatedSession(session);
     } catch {
-      return fail(request, { status: 401, code: "unauthorized", message: "Login richiesto." });
+      return fail(request, { status: 401, code: "unauthorized", message: "Login required." });
     }
     if (!validateCsrf(request, session.csrfToken)) {
       return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
@@ -28,23 +29,35 @@ export async function POST(request: Request, context: RouteContext) {
     const { jobId } = await context.params;
     const rateKey = `${resolveSessionTenantId(session)}:read-audio`;
     if (!checkRateLimit(rateKey)) {
-      return fail(request, { status: 429, code: "rate_limited", message: "Troppe richieste. Riprova tra poco." });
+      return fail(request, {
+        status: 429,
+        code: "rate_limited",
+        message: "Too many requests. Try again shortly.",
+      });
     }
     const job = await getJobById(jobId);
     if (!job) {
-      return fail(request, { status: 404, code: "not_found", message: "Job non trovato." });
+      return fail(request, { status: 404, code: "not_found", message: "Job not found." });
     }
     if (!canAccessOwnedResource(session, job)) {
-      return fail(request, { status: 403, code: "forbidden", message: "Accesso negato a questo oggetto." });
+      return fail(request, {
+        status: 403,
+        code: "forbidden",
+        message: "Access denied for this object.",
+      });
     }
     const url = await createPresignedReadUrl(job.objectKey);
     return ok(request, { url, expiresInSeconds: 300 });
   } catch (error) {
+    logError({
+      correlationId: getCorrelationId(request),
+      event: "pipeline.v1.read_audio.failed",
+      error: describeError(error),
+    });
     return fail(request, {
       status: 500,
       code: "internal_error",
-      message: "Impossibile generare URL di lettura.",
-      detail: error instanceof Error ? error.message : undefined
+      message: "Unable to generate read URL.",
     });
   }
 }

@@ -4,9 +4,10 @@ import {
   ensureSessionCookie,
   requireAuthenticatedSession,
   resolveSessionTenantId,
-  validateCsrf
+  validateCsrf,
 } from "@/lib/auth";
-import { fail, ok } from "@/lib/http";
+import { describeError, fail, getCorrelationId, ok } from "@/lib/http";
+import { logError } from "@/lib/logger";
 import { getJobById, updateJobResult } from "@/lib/pipeline-db-store";
 import { enqueuePipelineStage, type PipelineQueueJobName } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -20,35 +21,47 @@ type RouteContext = {
 function statusGenerating() {
   return {
     state: "generating" as const,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 }
 
-export async function generatePipelineArtifact(request: Request, context: RouteContext, kind: GenerationKind) {
+export async function generatePipelineArtifact(
+  request: Request,
+  context: RouteContext,
+  kind: GenerationKind,
+) {
   try {
     const session = await ensureSessionCookie();
     try {
       requireAuthenticatedSession(session);
     } catch {
-      return fail(request, { status: 401, code: "unauthorized", message: "Login richiesto." });
+      return fail(request, { status: 401, code: "unauthorized", message: "Login required." });
     }
     if (!validateCsrf(request, session.csrfToken)) {
       return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
     }
     const { jobId } = await context.params;
     if (!checkRateLimit(`${resolveSessionTenantId(session)}:pipeline_${kind}`)) {
-      return fail(request, { status: 429, code: "rate_limited", message: "Troppe richieste. Riprova tra poco." });
+      return fail(request, {
+        status: 429,
+        code: "rate_limited",
+        message: "Too many requests. Try again shortly.",
+      });
     }
 
     const job = await getJobById(jobId);
     if (!job) {
-      return fail(request, { status: 404, code: "not_found", message: "Job non trovato." });
+      return fail(request, { status: 404, code: "not_found", message: "Job not found." });
     }
     if (!canAccessOwnedResource(session, job)) {
-      return fail(request, { status: 403, code: "forbidden", message: "Accesso negato." });
+      return fail(request, { status: 403, code: "forbidden", message: "Access denied." });
     }
     if (job.state !== "completed" || !job.result) {
-      return fail(request, { status: 409, code: "conflict", message: "Completa prima l'analisi base." });
+      return fail(request, {
+        status: 409,
+        code: "conflict",
+        message: "Complete the base analysis first.",
+      });
     }
 
     const result = AnalysisOutputSchema.parse(job.result);
@@ -67,8 +80,8 @@ export async function generatePipelineArtifact(request: Request, context: RouteC
       ...result,
       artifactStatus: {
         ...result.artifactStatus,
-        [kind]: statusGenerating()
-      }
+        [kind]: statusGenerating(),
+      },
     });
     await updateJobResult(jobId, next);
     await enqueuePipelineStage({
@@ -77,16 +90,20 @@ export async function generatePipelineArtifact(request: Request, context: RouteC
       payload: {
         jobId,
         meetingId: job.meetingId,
-        objectKey: job.objectKey
-      }
+        objectKey: job.objectKey,
+      },
     });
     return ok(request, { state: "generating" }, 202);
   } catch (error) {
+    logError({
+      correlationId: getCorrelationId(request),
+      event: "pipeline.v1.generation.failed",
+      error: describeError(error),
+    });
     return fail(request, {
       status: 500,
       code: "internal_error",
-      message: "Impossibile generare il contenuto richiesto.",
-      detail: error instanceof Error ? error.message : undefined
+      message: "Unable to generate the requested content.",
     });
   }
 }

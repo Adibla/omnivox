@@ -1,5 +1,6 @@
 import { ensureSessionCookie, isAuthRequired } from "@/lib/auth";
-import { ok, fail } from "@/lib/http";
+import { describeError, fail, getCorrelationId, ok } from "@/lib/http";
+import { logError } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -16,18 +17,22 @@ export async function POST(request: Request) {
               subject: session.auth.subject,
               tenantId: session.auth.tenantId,
               email: session.auth.email,
-              name: session.auth.name
+              name: session.auth.name,
             }
-          : null
+          : null,
       },
-      201
+      201,
     );
   } catch (error) {
+    logError({
+      correlationId: getCorrelationId(request),
+      event: "auth.v1.session.failed",
+      error: describeError(error),
+    });
     return fail(request, {
       status: 500,
       code: "internal_error",
       message: "Unable to create session cookie.",
-      detail: error instanceof Error ? error.message : "Unknown error"
     });
   }
 }

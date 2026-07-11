@@ -1,39 +1,29 @@
 import { PresignRequestBaseSchema, PresignRequestSchema } from "@omnivox/shared";
 import { createPresignedUpload } from "@/lib/s3";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { ensureSessionCookie, requireAuthenticatedSession, resolveSessionTenantId, validateCsrf } from "@/lib/auth";
-import { fail, ok } from "@/lib/http";
+import {
+  ensureSessionCookie,
+  requireAuthenticatedSession,
+  resolveSessionTenantId,
+  validateCsrf,
+} from "@/lib/auth";
+import { describeError, fail, ok } from "@/lib/http";
 import { writeAuditEvent } from "@/lib/pipeline-db-store";
 import { ZodError } from "zod";
 import { logError } from "@/lib/logger";
 
 const PresignClientPayloadSchema = PresignRequestBaseSchema.omit({ tenantId: true });
 
-function describeError(error: unknown) {
-  if (error instanceof ZodError) {
-    return JSON.stringify(error.issues);
-  }
-  if (error instanceof Error) {
-    return error.message || error.name;
-  }
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const session = await ensureSessionCookie();
     try {
       requireAuthenticatedSession(session);
-    } catch (error) {
+    } catch {
       return fail(request, {
         status: 401,
         code: "unauthorized",
-        message: "Login richiesto.",
-        detail: describeError(error)
+        message: "Login required.",
       });
     }
     if (!validateCsrf(request, session.csrfToken)) {
@@ -47,7 +37,7 @@ export async function POST(request: Request) {
     const clientPayload = PresignClientPayloadSchema.parse(await request.json());
     const payload = PresignRequestSchema.parse({
       ...clientPayload,
-      tenantId
+      tenantId,
     });
     const result = await createPresignedUpload(payload);
     try {
@@ -56,8 +46,8 @@ export async function POST(request: Request) {
         payload: {
           meetingId: payload.meetingId,
           tenantId: payload.tenantId,
-          objectKey: result.objectKey
-        }
+          objectKey: result.objectKey,
+        },
       });
     } catch (auditError) {
       logError({
@@ -65,19 +55,25 @@ export async function POST(request: Request) {
         error: describeError(auditError),
         payload: {
           meetingId: payload.meetingId,
-          objectKey: result.objectKey
-        }
+          objectKey: result.objectKey,
+        },
       });
     }
     return ok(request, result, 201);
   } catch (error) {
     const detail = describeError(error);
     const isValidation = error instanceof ZodError;
+    if (!isValidation) {
+      logError({
+        event: "storage.v1.presign.failed",
+        error: detail,
+      });
+    }
     return fail(request, {
       status: isValidation ? 400 : 500,
       code: isValidation ? "bad_request" : "internal_error",
       message: isValidation ? "Invalid presign request." : "Unable to create presigned URL.",
-      detail
+      detail: isValidation ? detail : undefined,
     });
   }
 }

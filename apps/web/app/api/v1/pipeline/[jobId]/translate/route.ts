@@ -5,10 +5,11 @@ import {
   ensureSessionCookie,
   requireAuthenticatedSession,
   resolveSessionTenantId,
-  validateCsrf
+  validateCsrf,
 } from "@/lib/auth";
 import { getEnv } from "@/lib/env";
-import { fail, ok } from "@/lib/http";
+import { describeError, fail, getCorrelationId, ok } from "@/lib/http";
+import { logError } from "@/lib/logger";
 import { getOpenAIClient } from "@/lib/openai";
 import { getJobById } from "@/lib/pipeline-db-store";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -16,7 +17,7 @@ import { ZodError } from "zod";
 
 const LANGUAGE_LABELS: Record<"it" | "en", string> = {
   it: "Italiano",
-  en: "English"
+  en: "English",
 };
 
 type RouteContext = {
@@ -29,7 +30,7 @@ function resultForTranslation(result: unknown) {
     executiveBriefMarkdown: parsed.executiveBriefMarkdown,
     artifacts: parsed.artifacts,
     actions: parsed.actions,
-    sentiment: parsed.sentiment
+    sentiment: parsed.sentiment,
   };
 }
 
@@ -39,7 +40,7 @@ export async function POST(request: Request, context: RouteContext) {
     try {
       requireAuthenticatedSession(session);
     } catch {
-      return fail(request, { status: 401, code: "unauthorized", message: "Login richiesto." });
+      return fail(request, { status: 401, code: "unauthorized", message: "Login required." });
     }
     if (!validateCsrf(request, session.csrfToken)) {
       return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
@@ -47,19 +48,27 @@ export async function POST(request: Request, context: RouteContext) {
 
     const { jobId } = await context.params;
     if (!checkRateLimit(`${resolveSessionTenantId(session)}:pipeline-translate`)) {
-      return fail(request, { status: 429, code: "rate_limited", message: "Troppe traduzioni. Riprova tra poco." });
+      return fail(request, {
+        status: 429,
+        code: "rate_limited",
+        message: "Too many translations. Try again shortly.",
+      });
     }
 
     const body = TranslateReportRequestSchema.parse(await request.json());
     const job = await getJobById(jobId);
     if (!job) {
-      return fail(request, { status: 404, code: "not_found", message: "Job non trovato." });
+      return fail(request, { status: 404, code: "not_found", message: "Job not found." });
     }
     if (!canAccessOwnedResource(session, job)) {
-      return fail(request, { status: 403, code: "forbidden", message: "Accesso negato." });
+      return fail(request, { status: 403, code: "forbidden", message: "Access denied." });
     }
     if (!job.result) {
-      return fail(request, { status: 400, code: "bad_request", message: "Analisi non ancora completata." });
+      return fail(request, {
+        status: 400,
+        code: "bad_request",
+        message: "Analysis not completed yet.",
+      });
     }
 
     const source = resultForTranslation(job.result);
@@ -72,12 +81,12 @@ export async function POST(request: Request, context: RouteContext) {
           content:
             `Translate the report into ${targetLabel}. Return strict JSON only with the same schema. ` +
             "Translate executiveBriefMarkdown, artifact titles, Mermaid node labels, action titles, and owner values only when they are generic role names. " +
-            "Keep action id, status, dueDate, priority, risk, actionType, sentiment and Mermaid syntax structurally equivalent."
+            "Keep action id, status, dueDate, priority, risk, actionType, sentiment and Mermaid syntax structurally equivalent.",
         },
         {
           role: "user",
-          content: JSON.stringify(source)
-        }
+          content: JSON.stringify(source),
+        },
       ],
       text: {
         format: {
@@ -98,10 +107,10 @@ export async function POST(request: Request, context: RouteContext) {
                   properties: {
                     title: { type: "string", minLength: 3 },
                     diagramType: { type: "string", enum: ["mindmap", "flowchart"] },
-                    mermaidCode: { type: "string", minLength: 20, maxLength: 8000 }
+                    mermaidCode: { type: "string", minLength: 20, maxLength: 8000 },
                   },
-                  required: ["title", "diagramType", "mermaidCode"]
-                }
+                  required: ["title", "diagramType", "mermaidCode"],
+                },
               },
               actions: {
                 type: "array",
@@ -118,18 +127,27 @@ export async function POST(request: Request, context: RouteContext) {
                     risk: { type: "string", enum: ["low", "medium", "high"] },
                     actionType: { type: "string", enum: ["task", "decision", "risk", "follow_up"] },
                     id: { type: "string" },
-                    status: { type: "string", enum: ["todo", "in_progress", "blocked", "done"] }
+                    status: { type: "string", enum: ["todo", "in_progress", "blocked", "done"] },
                   },
-                  required: ["title", "owner", "dueDate", "priority", "risk", "actionType", "id", "status"]
-                }
+                  required: [
+                    "title",
+                    "owner",
+                    "dueDate",
+                    "priority",
+                    "risk",
+                    "actionType",
+                    "id",
+                    "status",
+                  ],
+                },
               },
-              sentiment: { type: "string", enum: ["positive", "neutral", "negative"] }
+              sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
             },
-            required: ["executiveBriefMarkdown", "artifacts", "actions", "sentiment"]
+            required: ["executiveBriefMarkdown", "artifacts", "actions", "sentiment"],
           },
-          strict: true
-        }
-      }
+          strict: true,
+        },
+      },
     } satisfies ResponseCreateParamsNonStreaming);
 
     const translatedReport = JSON.parse(response.output_text);
@@ -138,16 +156,24 @@ export async function POST(request: Request, context: RouteContext) {
       ...translatedReport,
       normalizedTranscript: original.normalizedTranscript,
       participants: original.participants,
-      transcriptSegments: original.transcriptSegments
+      transcriptSegments: original.transcriptSegments,
     });
     return ok(request, { result: translated, targetLanguage: body.targetLanguage });
   } catch (error) {
     const isValidation = error instanceof ZodError;
+    const detail = describeError(error);
+    if (!isValidation) {
+      logError({
+        correlationId: getCorrelationId(request),
+        event: "pipeline.v1.translate.failed",
+        error: detail,
+      });
+    }
     return fail(request, {
       status: isValidation ? 400 : 500,
       code: isValidation ? "bad_request" : "internal_error",
-      message: isValidation ? "Richiesta di traduzione non valida." : "Traduzione non riuscita.",
-      detail: error instanceof Error ? error.message : undefined
+      message: isValidation ? "Invalid translation request." : "Translation failed.",
+      detail: isValidation ? detail : undefined,
     });
   }
 }
