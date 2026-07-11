@@ -19,3 +19,4 @@ First open source release.
 - Optional Keycloak (OIDC) login with tenant and per-user isolation.
 - Versioned SQL migrations, structured logging with correlation ids, audit events.
 - Local compose stack (Postgres, Redis, MinIO, Keycloak) and one-shot setup scripts.
+- Dockerfiles for web and worker with an opt-in compose `app` profile that runs the full stack, including automatic database migration.

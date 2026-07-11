@@ -35,8 +35,6 @@ This is a working list of improvements for future releases. It is not a commitme
 
 ## Self-Hosting
 
-- Official Dockerfiles for web and worker.
-- Separate Compose profiles for local development and demo deployments.
 - Reverse proxy TLS examples.
 - Clearer local reset and demo seed scripts.
 - Kubernetes/Helm examples.

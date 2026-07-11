@@ -53,7 +53,14 @@ The AI backend is configurable. You can use an OpenAI business/API key, or point
 
 ## Local Setup
 
-The fastest path is the bootstrap script: it creates the env files, installs dependencies, starts the compose stack, waits for the healthchecks, and applies the database migrations.
+To just try OmniVox without a local Node.js toolchain, run the full Docker stack (see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)):
+
+```bash
+cp .env.example .env    # set OPENAI_API_KEY and SESSION_SECRET
+docker compose --profile app up -d --build
+```
+
+For development, the fastest path is the bootstrap script: it creates the env files, installs dependencies, starts the compose stack, waits for the healthchecks, and applies the database migrations.
 
 ```bash
 npm run setup        # macOS / Linux
@@ -202,6 +209,7 @@ curl -s http://localhost:4010/ready
 
 - [`docs/README.md`](docs/README.md): documentation index
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): architecture, runtime flow, main APIs, and configuration
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): Docker stack, development mode, and manual server deployment
 - [`docs/PRIVACY.md`](docs/PRIVACY.md): privacy and GDPR notes
 - [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md): common issues
 - [`ROADMAP.md`](ROADMAP.md): planned or desired work
