@@ -1,5 +1,10 @@
 import { UpdateActionStatusRequestSchema } from "@omnivox/shared";
-import { canAccessOwnedResource, ensureSessionCookie, requireAuthenticatedSession, validateCsrf } from "@/lib/auth";
+import {
+  canAccessOwnedResource,
+  ensureSessionCookie,
+  requireAuthenticatedSession,
+  validateCsrf,
+} from "@/lib/auth";
 import { fail, ok } from "@/lib/http";
 import { getJobById, resolveActionId, upsertActionStatus } from "@/lib/pipeline-db-store";
 
@@ -15,7 +20,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     requireAuthenticatedSession(session);
   } catch {
-    return fail(request, { status: 401, code: "unauthorized", message: "Login richiesto." });
+    return fail(request, { status: 401, code: "unauthorized", message: "Login required." });
   }
   if (!validateCsrf(request, session.csrfToken)) {
     return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
@@ -24,19 +29,21 @@ export async function PATCH(request: Request, context: RouteContext) {
   const { jobId, actionId } = await context.params;
   const job = await getJobById(jobId);
   if (!job) {
-    return fail(request, { status: 404, code: "not_found", message: "Job non trovato." });
+    return fail(request, { status: 404, code: "not_found", message: "Job not found." });
   }
   if (!canAccessOwnedResource(session, job)) {
-    return fail(request, { status: 403, code: "forbidden", message: "Accesso negato." });
+    return fail(request, { status: 403, code: "forbidden", message: "Access denied." });
   }
   const result = job.result;
   if (!result?.actions.length) {
-    return fail(request, { status: 404, code: "not_found", message: "Azione non trovata." });
+    return fail(request, { status: 404, code: "not_found", message: "Action not found." });
   }
 
-  const actionExists = result.actions.some((action, index) => resolveActionId(action, index) === actionId);
+  const actionExists = result.actions.some(
+    (action, index) => resolveActionId(action, index) === actionId,
+  );
   if (!actionExists) {
-    return fail(request, { status: 404, code: "not_found", message: "Azione non trovata." });
+    return fail(request, { status: 404, code: "not_found", message: "Action not found." });
   }
 
   const payload = UpdateActionStatusRequestSchema.parse(await request.json());
@@ -44,6 +51,6 @@ export async function PATCH(request: Request, context: RouteContext) {
   return ok(request, {
     actionId,
     status: payload.status,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   });
 }
