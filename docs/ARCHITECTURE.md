@@ -134,6 +134,8 @@ S3_CHECKSUM_ENABLED=true
 
 If a storage provider does not support SHA-256 checksum headers on presigned uploads, use `S3_CHECKSUM_ENABLED=false`. If it requires server-side encryption, set `S3_SERVER_SIDE_ENCRYPTION`.
 
+When the server reaches storage over an internal network (e.g. the compose `app` profile talks to `http://minio:9000`), set `S3_PUBLIC_ENDPOINT` to the browser-facing storage URL: presigned upload/read URLs embed the endpoint host in the signature, so they must be signed against the host the browser will actually call.
+
 ## Pipeline Worker
 
 Stages:

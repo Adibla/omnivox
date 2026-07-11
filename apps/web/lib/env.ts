@@ -12,6 +12,9 @@ const optionalNonEmptyString = z.preprocess(
 const EnvSchema = z
   .object({
     S3_ENDPOINT: optionalNonEmptyString,
+    // Endpoint reachable from the browser, used only to sign upload/read URLs.
+    // Needed when the server talks to storage over an internal network.
+    S3_PUBLIC_ENDPOINT: optionalNonEmptyString,
     S3_REGION: optionalString,
     S3_BUCKET: z.string().min(3).optional(),
     S3_ACCESS_KEY_ID: z.string().min(3).optional(),
@@ -51,6 +54,7 @@ const EnvSchema = z
   .transform((env) => ({
     ...env,
     S3_ENDPOINT: env.S3_ENDPOINT ?? "http://localhost:9000",
+    S3_PUBLIC_ENDPOINT: env.S3_PUBLIC_ENDPOINT ?? env.S3_ENDPOINT ?? "http://localhost:9000",
     S3_REGION: env.S3_REGION ?? "us-east-1",
     S3_BUCKET: env.S3_BUCKET ?? "omnivox",
     S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID ?? "minioadmin",

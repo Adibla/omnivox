@@ -10,17 +10,27 @@ import { buildObjectKey, createSecurityHeaders } from "@omnivox/security";
 import type { PresignRequest, PresignResponse } from "@omnivox/shared";
 import { getEnv } from "./env";
 
-function getS3Client() {
+function buildS3Client(endpoint: string) {
   const env = getEnv();
   return new S3Client({
     region: env.S3_REGION,
-    endpoint: env.S3_ENDPOINT,
+    endpoint,
     forcePathStyle: env.S3_FORCE_PATH_STYLE,
     credentials: {
       accessKeyId: env.S3_ACCESS_KEY_ID,
       secretAccessKey: env.S3_SECRET_ACCESS_KEY,
     },
   });
+}
+
+function getS3Client() {
+  return buildS3Client(getEnv().S3_ENDPOINT);
+}
+
+// Presigned URLs embed the endpoint host in the signature, so they must be
+// signed against the endpoint the browser will actually reach.
+function getPresignClient() {
+  return buildS3Client(getEnv().S3_PUBLIC_ENDPOINT);
 }
 
 export async function createPresignedUpload(request: PresignRequest): Promise<PresignResponse> {
@@ -49,7 +59,7 @@ export async function createPresignedUpload(request: PresignRequest): Promise<Pr
       env.S3_SERVER_SIDE_ENCRYPTION as PutObjectCommandInput["ServerSideEncryption"];
   }
   const command = new PutObjectCommand(input);
-  const uploadUrl = await getSignedUrl(getS3Client(), command, {
+  const uploadUrl = await getSignedUrl(getPresignClient(), command, {
     expiresIn: env.S3_PRESIGN_TTL_SECONDS,
   });
 
@@ -77,5 +87,5 @@ export async function createPresignedReadUrl(objectKey: string) {
     Bucket: env.S3_BUCKET,
     Key: objectKey,
   });
-  return getSignedUrl(getS3Client(), command, { expiresIn: 300 });
+  return getSignedUrl(getPresignClient(), command, { expiresIn: 300 });
 }
