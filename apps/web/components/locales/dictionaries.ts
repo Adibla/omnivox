@@ -225,9 +225,9 @@ export const dictionaries = {
     "result.diagramsReady": "Diagrammi pronti.",
     "result.actionsReady": "Azioni pronte.",
     "result.diagramsEmpty":
-      "I diagrammi non vengono creati automaticamente: clicca quando vuoi una vista visuale del contenuto.",
+      "Trasforma la riunione in diagrammi: flussi, decisioni e relazioni in forma visuale. Si generano solo su richiesta.",
     "result.actionsEmpty":
-      "Il piano azioni non viene creato automaticamente: clicca quando vuoi trasformare il brief in lavoro operativo.",
+      "Genera il piano azioni: attività, responsabili e priorità estratti dalla riunione. Si crea solo su richiesta.",
     "label.sentiment": "Sentiment",
     "label.actions": "Azioni",
     "label.diagrams": "Diagrammi",
@@ -533,9 +533,9 @@ export const dictionaries = {
     "result.diagramsReady": "Diagrams ready.",
     "result.actionsReady": "Actions ready.",
     "result.diagramsEmpty":
-      "Diagrams are not created automatically: click when you want a visual view of the content.",
+      "Turn the meeting into diagrams: flows, decisions, and relationships in visual form. Generated only on demand.",
     "result.actionsEmpty":
-      "The action plan is not created automatically: click when you want to turn the brief into execution.",
+      "Generate the action plan: tasks, owners, and priorities extracted from the meeting. Created only on demand.",
     "label.sentiment": "Sentiment",
     "label.actions": "Actions",
     "label.diagrams": "Diagrams",
