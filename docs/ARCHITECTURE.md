@@ -4,16 +4,16 @@ These are the technical notes for the project. The README explains how to get st
 
 ## Components
 
-| Component                    | Role                                                                                   |
-| ---------------------------- | -------------------------------------------------------------------------------------- |
-| Browser                      | UI, file selection, SHA-256 hash, direct storage upload, polling, report rendering     |
-| Web (`apps/web`)             | Next.js, UI, `/api/v1/*` routes, session, CSRF, S3 presign, pipeline enqueue, DB reads |
-| Worker (`apps/worker`)       | BullMQ consumer, transcription, preprocessing, reasoning, lazy actions/diagrams        |
-| Redis                        | BullMQ queue and server-side OIDC session token store                                  |
-| Postgres                     | Job metadata, report data, actions, artifacts, generation status, and audit data       |
-| MinIO/S3                     | Original audio files                                                                   |
-| Keycloak                     | Local/optional OIDC identity provider                                                  |
-| OpenAI / compatible endpoint | Transcription and generated outputs                                                    |
+| Component                    | Role                                                                                          |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| Browser                      | UI, file selection, SHA-256 hash, direct storage upload, polling, report rendering            |
+| Web (`apps/web`)             | Next.js, UI, `/api/v1/*` routes, session, CSRF, S3 presign, pipeline enqueue, DB reads/writes |
+| Worker (`apps/worker`)       | BullMQ consumer, transcription, preprocessing, reasoning, lazy actions/diagrams               |
+| Redis                        | BullMQ queue and server-side OIDC session token store                                         |
+| Postgres                     | Job metadata, report data, actions, artifacts, generation status, and audit data              |
+| MinIO/S3                     | Original audio files                                                                          |
+| Keycloak                     | Local/optional OIDC identity provider                                                         |
+| OpenAI / compatible endpoint | Transcription and generated outputs                                                           |
 
 The browser does not call the AI backend directly. It also does not call the worker. It goes through the web API, which enqueues work in Redis and reads state from Postgres.
 
