@@ -34,6 +34,48 @@ const ORDER: PipelineState[] = [
   "completed",
 ];
 
+export const PIPELINE_PHASES = ["queued", "transcribing", "preprocessing", "reasoning"] as const;
+
+export type PipelinePhase = (typeof PIPELINE_PHASES)[number];
+export type PipelinePhaseStatus = "done" | "active" | "upcoming";
+
+export function pipelinePhaseStatus(
+  phase: PipelinePhase,
+  currentState: PipelineState | string,
+): PipelinePhaseStatus {
+  if (currentState === "completed") {
+    return "done";
+  }
+  const currentIdx = ORDER.indexOf(currentState as PipelineState);
+  const phaseIdx = ORDER.indexOf(phase);
+  if (currentIdx < 0) {
+    return phase === "queued" ? "active" : "upcoming";
+  }
+  if (phaseIdx < currentIdx) {
+    return "done";
+  }
+  return phaseIdx === currentIdx ? "active" : "upcoming";
+}
+
+const PIPELINE_PHASE_HINTS_IT: Record<PipelinePhase, string> = {
+  queued: "L'analisi è in coda e parte a momenti.",
+  transcribing: "L'audio viene trascritto: di solito è la fase più lunga.",
+  preprocessing: "La trascrizione viene ripulita e organizzata.",
+  reasoning: "Il report viene generato: brief, sentiment e partecipanti.",
+};
+
+const PIPELINE_PHASE_HINTS_EN: Record<PipelinePhase, string> = {
+  queued: "The analysis is queued and starts shortly.",
+  transcribing: "The audio is being transcribed: usually the longest phase.",
+  preprocessing: "The transcript is being cleaned up and organized.",
+  reasoning: "The report is being generated: brief, sentiment, and participants.",
+};
+
+export function pipelinePhaseHintForLocale(phase: PipelinePhase, locale: string): string {
+  const hints = locale === "en" ? PIPELINE_PHASE_HINTS_EN : PIPELINE_PHASE_HINTS_IT;
+  return hints[phase];
+}
+
 export function pipelineProgressPercent(state: PipelineState | string): number {
   if (state === "failed") {
     return 100;

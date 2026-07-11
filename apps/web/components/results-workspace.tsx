@@ -19,6 +19,7 @@ import {
 import { ActionBoard } from "@/components/action-board";
 import { DiagramGallery } from "@/components/diagram-gallery";
 import { ExecutiveBrief } from "@/components/executive-brief";
+import { PipelineStepper } from "@/components/pipeline-stepper";
 import { TranscriptWorkspace } from "@/components/transcript-workspace";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -521,11 +522,12 @@ export function ResultsWorkspace({
       ) : null}
 
       {showProgress ? (
-        <div className="ui-panel-quiet mt-8 space-y-3 p-5" aria-live="polite">
+        <div className="ui-panel-quiet mt-8 space-y-4 p-5" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-medium">{t("result.processing")}</span>
             <Badge variant="secondary">{jobStateLine}</Badge>
           </div>
+          <PipelineStepper state={pipelineJob?.state ?? "queued"} locale={locale} />
           <Progress value={pipelineJob ? pipelineProgressPercent(pipelineJob.state) : 12} />
         </div>
       ) : null}
