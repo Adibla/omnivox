@@ -215,6 +215,10 @@ curl -s http://localhost:4010/ready
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): how to set up and contribute
 - [`SECURITY.md`](SECURITY.md): how to report vulnerabilities
 
+## Disclaimer
+
+OmniVox is provided "as is", without warranty of any kind, under the terms of the [Apache-2.0 license](LICENSE). Whoever deploys it acts as the data controller for their instance and is responsible for its legal compliance — including privacy regulations such as GDPR, retention policies, and the choice of AI backend. See [`docs/PRIVACY.md`](docs/PRIVACY.md) for what to define before processing real data.
+
 ## License
 
 Apache-2.0. See [`LICENSE`](LICENSE).
