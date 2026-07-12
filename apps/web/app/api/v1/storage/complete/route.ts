@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
     }
     const tenantId = resolveSessionTenantId(session);
-    if (!checkRateLimit(`${tenantId}:complete`)) {
+    if (!(await checkRateLimit(`${tenantId}:complete`))) {
       return fail(request, { status: 429, code: "rate_limited", message: "Rate limit exceeded." });
     }
     const payload = CompleteUploadRequestSchema.parse(await request.json());

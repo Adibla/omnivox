@@ -1,26 +1,23 @@
 import { getEnv } from "./env";
+import { logError } from "./logger";
+import { getRedis } from "./redis";
 
-type RateState = {
-  minute: number;
-  count: number;
-};
-
-const memoryRateStore = new Map<string, RateState>();
-
-export function checkRateLimit(key: string) {
-  const nowMinute = Math.floor(Date.now() / 60000);
-  const current = memoryRateStore.get(key);
-  if (!current || current.minute !== nowMinute) {
-    memoryRateStore.set(key, {
-      minute: nowMinute,
-      count: 1,
+export async function checkRateLimit(key: string): Promise<boolean> {
+  const minuteBucket = Math.floor(Date.now() / 60000);
+  const redisKey = `omnivox:rate:${key}:${minuteBucket}`;
+  try {
+    const redis = getRedis();
+    const count = await redis.incr(redisKey);
+    if (count === 1) {
+      await redis.expire(redisKey, 90);
+    }
+    return count <= getEnv().API_RATE_LIMIT_PER_MINUTE;
+  } catch (error) {
+    // Fail open: a Redis blip must not take the whole API down.
+    logError({
+      event: "rate_limit.check_failed",
+      error: error instanceof Error ? error.message : String(error),
     });
     return true;
   }
-  if (current.count >= getEnv().API_RATE_LIMIT_PER_MINUTE) {
-    return false;
-  }
-  current.count += 1;
-  memoryRateStore.set(key, current);
-  return true;
 }

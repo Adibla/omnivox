@@ -1,18 +1,5 @@
-import IORedis from "ioredis";
-import { getEnv } from "./env";
 import type { AuthIdentity } from "./auth";
-
-let redis: IORedis | null = null;
-
-function getRedis() {
-  if (redis) {
-    return redis;
-  }
-  redis = new IORedis(getEnv().REDIS_URL, {
-    maxRetriesPerRequest: null,
-  });
-  return redis;
-}
+import { getRedis } from "./redis";
 
 export type StoredAuthSession = {
   identity: AuthIdentity;

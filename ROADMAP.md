@@ -5,7 +5,6 @@ This is a working list of improvements for future releases. It is not a commitme
 ## Hardening
 
 - Pluggable queue transport, with possible RabbitMQ or NATS support if a dedicated broker, multi-language workers, or more explicit routing become useful.
-- Shared rate limiting on Redis for deployments with multiple web replicas.
 - DLQ tooling for inspecting, retrying, and purging failed jobs.
 - More complete readiness checks for web and worker: Redis, Postgres, S3-compatible storage, and AI configuration.
 - Operational metrics: queue depth, job duration, error rate per stage, average job age.

@@ -47,7 +47,7 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const { jobId } = await context.params;
-    if (!checkRateLimit(`${resolveSessionTenantId(session)}:pipeline-translate`)) {
+    if (!(await checkRateLimit(`${resolveSessionTenantId(session)}:pipeline-translate`))) {
       return fail(request, {
         status: 429,
         code: "rate_limited",

@@ -28,7 +28,7 @@ export async function POST(request: Request, context: RouteContext) {
     }
     const { jobId } = await context.params;
     const rateKey = `${resolveSessionTenantId(session)}:read-audio`;
-    if (!checkRateLimit(rateKey)) {
+    if (!(await checkRateLimit(rateKey))) {
       return fail(request, {
         status: 429,
         code: "rate_limited",

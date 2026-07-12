@@ -67,10 +67,9 @@ Nomad, ECS, ...):
 | `worker` | `omnivox-worker` (health on 4010) | `DATABASE_URL`, `REDIS_URL`, `S3_*`, `OPENAI_API_KEY`/`OPENAI_BASE_URL`                                                                                                                                            |
 
 Scaling notes: workers scale horizontally — BullMQ distributes jobs across
-replicas. Keep the web at one replica until the in-memory rate limiter moves
-to a shared store (see the roadmap). Wire the worker's `GET /health` and
-`GET /ready` into your orchestrator's probes, and terminate TLS in front of
-the web service.
+replicas — and so does the web, since rate limiting is shared through Redis.
+Wire the worker's `GET /health` and `GET /ready` into your orchestrator's
+probes, and terminate TLS in front of the web service.
 
 ## 4. Manual server deployment
 
@@ -94,8 +93,6 @@ Requirements and hardening for any real deployment (Docker or manual):
 - Point `DATABASE_URL`, `REDIS_URL`, and the `S3_*` variables at your managed
   services. If the server reaches storage over an internal network, set
   `S3_PUBLIC_ENDPOINT` to the browser-facing storage URL.
-- The rate limiter is in-memory (per instance); put a shared limiter or an API
-  gateway in front if you run multiple web replicas.
 
 ## Keycloak mode
 

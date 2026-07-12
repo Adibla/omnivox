@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
     const tenantId = resolveSessionTenantId(session);
     const rateKey = `${tenantId}:presign`;
-    if (!checkRateLimit(rateKey)) {
+    if (!(await checkRateLimit(rateKey))) {
       return fail(request, { status: 429, code: "rate_limited", message: "Rate limit exceeded." });
     }
     const clientPayload = PresignClientPayloadSchema.parse(await request.json());
