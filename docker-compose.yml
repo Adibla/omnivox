@@ -126,8 +126,15 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:?set OPENAI_API_KEY in a root .env file}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in a root .env file}
-      AUTH_MODE: disabled
+      # Keycloak mode needs an issuer host that both the browser and this
+      # container can resolve; see docs/DEPLOYMENT.md#keycloak-mode.
+      AUTH_MODE: ${AUTH_MODE:-disabled}
       APP_BASE_URL: http://localhost:3000
+      KEYCLOAK_ISSUER_URL: ${KEYCLOAK_ISSUER_URL:-}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   worker:

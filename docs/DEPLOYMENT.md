@@ -75,7 +75,35 @@ KEYCLOAK_CLIENT_SECRET=...
 ```
 
 The issuer URL must be reachable **both** by the user's browser (for the login
-redirect) and by the web server (for token exchange and JWKS). With the local
-compose stack this means using a hostname that resolves from inside the
-containers as well — a real domain, or host networking. The bundled demo realm
-(`infra/keycloak/realm-omnivox.json`) is for local development only.
+redirect) and by the web server (for token exchange and JWKS), under the same
+hostname — the token issuer is verified strictly. In a real deployment this is
+automatic: Keycloak lives at a public hostname (e.g. `https://auth.example.com`)
+that browsers and servers resolve alike, so no special setup is needed beyond
+registering `https://your-app.example.com/api/v1/auth/callback` as a redirect
+URI on the client.
+
+### Local compose stack with Keycloak
+
+`localhost` does not satisfy the rule above (inside the web container it points
+to the container itself). Use `host.docker.internal`, which both sides can
+resolve:
+
+1. If your browser cannot resolve it, add this line to `/etc/hosts`:
+
+   ```text
+   127.0.0.1 host.docker.internal
+   ```
+
+2. Add to the root `.env`:
+
+   ```env
+   AUTH_MODE=keycloak
+   KEYCLOAK_ISSUER_URL=http://host.docker.internal:8080/realms/omnivox
+   KEYCLOAK_CLIENT_ID=omnivox-web
+   KEYCLOAK_CLIENT_SECRET=omnivox-local-secret
+   ```
+
+3. Restart the profile: `docker compose --profile app up -d`.
+
+Log in with the demo users (`demo`/`demo`, `demo2`/`demo2`). The bundled demo
+realm (`infra/keycloak/realm-omnivox.json`) is for local development only.
