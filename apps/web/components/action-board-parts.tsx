@@ -294,6 +294,7 @@ function ActionCard({
         </span>
         <span className="min-w-0 flex-1">
           <span
+            title={item.title}
             className={cn(
               "line-clamp-3 text-sm font-semibold leading-snug text-foreground",
               status === "done" && "line-through",
