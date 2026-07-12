@@ -105,7 +105,27 @@ curl -s https://api.openai.com/v1/audio/transcriptions \
 
 The second call returns the real error body (e.g. `insufficient_quota`).
 
-## 11. Suggested Debug Sequence
+## 11. Phone `.m4a` Recording Rejected (`Invalid file format`)
+
+Some phone recorders — notably Samsung's — save **3GP containers renamed to
+`.m4a`**. Extension and MIME type both claim m4a, but the transcription
+provider inspects the bytes and rejects the file. The UI now detects this
+before the upload; if you hit the provider error anyway, check the signature:
+
+```bash
+xxd your-file.m4a | head -1   # "ftyp3gp4" = 3GP in disguise
+```
+
+Convert it to a real container first:
+
+```bash
+# macOS (built-in)
+afconvert -f m4af -d aac your-file.m4a converted.m4a
+# anywhere with ffmpeg (usually a lossless remux is enough)
+ffmpeg -i your-file.m4a -c copy converted.m4a
+```
+
+## 12. Suggested Debug Sequence
 
 1. `GET http://localhost:4010/health` and `.../ready`
 2. `POST /api/v1/auth/session` returns `csrfToken`

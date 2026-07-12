@@ -28,6 +28,7 @@ This is a working list of improvements for future releases. It is not a commitme
 
 - Pluggable AI provider layer: OpenAI/OpenAI-compatible by default, with future native adapters for Gemini or Claude where the required features match.
 - Chunking and large-file handling beyond the current direct upload limit.
+- Server-side audio normalization (e.g. remuxing 3GP-in-`.m4a` phone recordings) so quirky containers are transcribed instead of rejected.
 - More robust speaker diarization.
 - Selective regeneration of individual sections: brief, actions, diagrams, or translation.
 - Output quality checks with targeted retry only on the weak stage.

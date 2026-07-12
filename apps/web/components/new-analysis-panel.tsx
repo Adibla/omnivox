@@ -16,6 +16,7 @@ import {
   AUDIO_MAX_BYTES,
   SUPPORTED_AUDIO_ACCEPT,
   SUPPORTED_AUDIO_FORMATS,
+  detectUnsupportedAudioContainer,
   getDefaultContentTypeForAudioFormat,
   resolveSupportedAudioFormat,
   type MeetingTemplate,
@@ -220,6 +221,16 @@ export function NewAnalysisPanel({
     try {
       setUploadPhase("hashing");
       const arrayBuffer = await file.arrayBuffer();
+      if (detectUnsupportedAudioContainer(arrayBuffer)) {
+        setUploadPhase("idle");
+        setIsRunning(false);
+        setError(
+          locale === "en"
+            ? "This file is a 3GP recording renamed to .m4a (some phone recorder apps do this) and the transcription service rejects it. Re-export or convert it to a real m4a/mp3 first."
+            : "Il file è una registrazione 3GP rinominata .m4a (succede con alcune app di registrazione dei telefoni) e il servizio di trascrizione la rifiuta. Riesportala o convertila in un vero m4a/mp3 prima di caricarla.",
+        );
+        return;
+      }
       const localSha256 = await sha256Hex(arrayBuffer);
 
       const presignResponse = await fetch("/api/v1/storage/presign", {
