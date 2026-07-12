@@ -110,60 +110,16 @@ export async function softDeleteJob(jobId: string) {
   );
 }
 
-export async function updateJobState(
-  jobId: string,
-  state: DbPipelineJob["state"],
-  error?: string | null,
-) {
+// Status-only write: the worker owns the artifact tables.
+export async function markArtifactGenerating(jobId: string, kind: ArtifactKind) {
   await initializeDatabase();
   const db = getDbPool();
-  await db.query(
-    `update pipeline_jobs
-     set state = $2, error = $3, updated_at = now(), attempt = attempt + 1
-     where external_id = $1`,
-    [jobId, state, error ?? null],
-  );
-}
-
-export async function completeJob(jobId: string, result: AnalysisOutput) {
-  await initializeDatabase();
-  const db = getDbPool();
-  const client = await db.connect();
-  try {
-    await client.query("begin");
-    const internalJobId = await resolveInternalJobId(client, jobId);
-    await client.query(
-      `update pipeline_jobs set state = 'completed', updated_at = now() where id = $1`,
-      [internalJobId],
-    );
-    await persistResultEntities(client, internalJobId, result);
-    await client.query("commit");
-  } catch (error) {
-    await client.query("rollback");
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-export async function updateJobResult(jobId: string, result: AnalysisOutput) {
-  await initializeDatabase();
-  const db = getDbPool();
-  const client = await db.connect();
-  try {
-    await client.query("begin");
-    const internalJobId = await resolveInternalJobId(client, jobId);
-    await persistResultEntities(client, internalJobId, result);
-    await client.query(`update pipeline_jobs set updated_at = now() where id = $1`, [
-      internalJobId,
-    ]);
-    await client.query("commit");
-  } catch (error) {
-    await client.query("rollback");
-    throw error;
-  } finally {
-    client.release();
-  }
+  const internalJobId = await resolveInternalJobId(db, jobId);
+  await upsertArtifactStatus(db, internalJobId, kind, {
+    state: "generating",
+    updatedAt: new Date().toISOString(),
+  });
+  await db.query(`update pipeline_jobs set updated_at = now() where id = $1`, [internalJobId]);
 }
 
 export function resolveActionId(action: AnalysisOutput["actions"][number], index: number) {
@@ -333,85 +289,6 @@ async function assembleResult(internalJobId: number): Promise<AnalysisOutput | n
       diagrams: statusFor("diagrams"),
     },
   });
-}
-
-async function persistResultEntities(
-  db: Queryable,
-  internalJobId: number,
-  rawResult: AnalysisOutput,
-) {
-  const result = AnalysisOutputSchema.parse(rawResult);
-  await db.query(
-    `insert into pipeline_results (
-       job_id, executive_brief_markdown, sentiment, normalized_transcript, participants_json, transcript_segments_json, result_schema_version, updated_at
-     )
-     values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, 1, now())
-     on conflict (job_id)
-     do update set
-       executive_brief_markdown = excluded.executive_brief_markdown,
-       sentiment = excluded.sentiment,
-       normalized_transcript = excluded.normalized_transcript,
-       participants_json = excluded.participants_json,
-       transcript_segments_json = excluded.transcript_segments_json,
-       result_schema_version = excluded.result_schema_version,
-       updated_at = now()`,
-    [
-      internalJobId,
-      result.executiveBriefMarkdown,
-      result.sentiment,
-      result.normalizedTranscript ?? null,
-      JSON.stringify(result.participants ?? []),
-      JSON.stringify(result.transcriptSegments ?? []),
-    ],
-  );
-  await replaceArtifacts(db, internalJobId, result.artifacts);
-  await replaceActions(db, internalJobId, result.actions);
-  await upsertArtifactStatus(db, internalJobId, "actions", result.artifactStatus.actions);
-  await upsertArtifactStatus(db, internalJobId, "diagrams", result.artifactStatus.diagrams);
-}
-
-async function replaceArtifacts(
-  db: Queryable,
-  internalJobId: number,
-  artifacts: AnalysisOutput["artifacts"],
-) {
-  await db.query(`delete from pipeline_artifacts where job_id = $1`, [internalJobId]);
-  for (const [index, artifact] of artifacts.entries()) {
-    await db.query(
-      `insert into pipeline_artifacts (job_id, diagram_type, title, mermaid_code, sort_order)
-       values ($1, $2, $3, $4, $5)`,
-      [internalJobId, artifact.diagramType, artifact.title, artifact.mermaidCode, index],
-    );
-  }
-}
-
-async function replaceActions(
-  db: Queryable,
-  internalJobId: number,
-  actions: AnalysisOutput["actions"],
-) {
-  await db.query(`delete from pipeline_actions where job_id = $1`, [internalJobId]);
-  for (const [index, action] of actions.entries()) {
-    const actionId = resolveActionId(action, index);
-    await db.query(
-      `insert into pipeline_actions (job_id, action_id, title, owner, due_date, priority, risk, action_type, sort_order)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [
-        internalJobId,
-        actionId,
-        action.title,
-        action.owner,
-        action.dueDate ?? null,
-        action.priority,
-        action.risk,
-        action.actionType,
-        index,
-      ],
-    );
-    if (action.status && action.status !== "todo") {
-      await upsertActionStatusWithDb(db, { internalJobId, actionId, status: action.status });
-    }
-  }
 }
 
 async function upsertArtifactStatus(

@@ -1,15 +1,23 @@
 import { createHash, randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { AnalysisOutputSchema, type AnalysisOutput } from "@omnivox/shared";
+import { z } from "zod";
+import {
+  ActionItemSchema,
+  AnalysisOutputSchema,
+  MermaidArtifactSchema,
+  type AnalysisOutput,
+} from "@omnivox/shared";
 import { getWorkerEnv } from "@/lib/env";
 
 let pool: Pool | null = null;
-let initialized = false;
 
 type ArtifactKind = "actions" | "diagrams";
 type Queryable = {
   query: (text: string, params?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>;
 };
+
+const GeneratedActionsSchema = z.array(ActionItemSchema).max(30);
+const GeneratedArtifactsSchema = z.array(MermaidArtifactSchema).max(4);
 
 export function getWorkerDbPool() {
   if (pool) {
@@ -21,12 +29,8 @@ export function getWorkerDbPool() {
   return pool;
 }
 
-async function ensureWorkerDatabase() {
-  if (initialized) {
-    return;
-  }
-  const db = getWorkerDbPool();
-  const { rows } = await db.query(
+export async function assertWorkerDatabaseSchema() {
+  const { rows } = await getWorkerDbPool().query(
     `select 1
      from information_schema.tables
      where table_schema = 'public' and table_name = 'pipeline_jobs'`,
@@ -36,19 +40,21 @@ async function ensureWorkerDatabase() {
       "Database schema not found. Run `npm run db:migrate` before starting the worker.",
     );
   }
-  initialized = true;
 }
 
 export async function updateJobState(jobId: string, state: string, error?: string | null) {
-  await ensureWorkerDatabase();
   await getWorkerDbPool().query(
-    `update pipeline_jobs set state = $2, error = $3, updated_at = now(), attempt = attempt + 1 where external_id = $1`,
+    `update pipeline_jobs
+     set state = $2,
+         error = $3,
+         updated_at = now(),
+         attempt = attempt + (case when $2 = 'failed' then 1 else 0 end)
+     where external_id = $1`,
     [jobId, state, error ?? null],
   );
 }
 
 export async function getJob(jobId: string) {
-  await ensureWorkerDatabase();
   const { rows } = await getWorkerDbPool().query(
     `select id, external_id, meeting_id, object_key from pipeline_jobs where external_id = $1`,
     [jobId],
@@ -65,7 +71,6 @@ export async function getJob(jobId: string) {
 }
 
 export async function completeJob(jobId: string, result: Record<string, unknown>) {
-  await ensureWorkerDatabase();
   const parsed = AnalysisOutputSchema.parse(result);
   const db = getWorkerDbPool();
   const client = await db.connect();
@@ -86,15 +91,51 @@ export async function completeJob(jobId: string, result: Record<string, unknown>
   }
 }
 
-export async function updateJobResult(jobId: string, result: Record<string, unknown>) {
-  await ensureWorkerDatabase();
-  const parsed = AnalysisOutputSchema.parse(result);
+// Each artifact kind writes only its own tables: concurrent generations cannot clobber each other.
+export async function setArtifactGenerationStatus(
+  jobId: string,
+  kind: ArtifactKind,
+  state: "generating" | "failed",
+  error?: string,
+) {
   const db = getWorkerDbPool();
-  const client = await db.connect();
+  const internalJobId = await resolveInternalJobId(db, jobId);
+  await upsertArtifactStatus(db, internalJobId, kind, {
+    state,
+    ...(error ? { error } : {}),
+    updatedAt: new Date().toISOString(),
+  });
+  await db.query(`update pipeline_jobs set updated_at = now() where id = $1`, [internalJobId]);
+}
+
+export async function saveGeneratedActions(jobId: string, actions: unknown) {
+  const parsed = GeneratedActionsSchema.parse(actions);
+  await saveGenerated(jobId, "actions", (client, internalJobId) =>
+    replaceActions(client, internalJobId, parsed),
+  );
+}
+
+export async function saveGeneratedArtifacts(jobId: string, artifacts: unknown) {
+  const parsed = GeneratedArtifactsSchema.parse(artifacts);
+  await saveGenerated(jobId, "diagrams", (client, internalJobId) =>
+    replaceArtifacts(client, internalJobId, parsed),
+  );
+}
+
+async function saveGenerated(
+  jobId: string,
+  kind: ArtifactKind,
+  replace: (client: Queryable, internalJobId: number) => Promise<void>,
+) {
+  const client = await getWorkerDbPool().connect();
   try {
     await client.query("begin");
     const internalJobId = await resolveInternalJobId(client, jobId);
-    await persistResultEntities(client, internalJobId, parsed);
+    await replace(client, internalJobId);
+    await upsertArtifactStatus(client, internalJobId, kind, {
+      state: "completed",
+      updatedAt: new Date().toISOString(),
+    });
     await client.query(`update pipeline_jobs set updated_at = now() where id = $1`, [
       internalJobId,
     ]);
@@ -112,7 +153,6 @@ export async function writeAudit(
   eventType: string,
   payload: Record<string, unknown>,
 ) {
-  await ensureWorkerDatabase();
   const internalJobId = await resolveInternalJobId(getWorkerDbPool(), jobId);
   await getWorkerDbPool().query(
     `insert into audit_events (external_id, job_id, event_type, payload_json) values ($1, $2, $3, $4::jsonb)`,

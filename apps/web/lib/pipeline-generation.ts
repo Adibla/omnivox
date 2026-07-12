@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth";
 import { describeError, fail, getCorrelationId, ok } from "@/lib/http";
 import { logError } from "@/lib/logger";
-import { getJobById, updateJobResult } from "@/lib/pipeline-db-store";
+import { getJobById, markArtifactGenerating } from "@/lib/pipeline-db-store";
 import { enqueuePipelineStage, type PipelineQueueJobName } from "@/lib/queue";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -17,13 +17,6 @@ type GenerationKind = Extract<PipelineQueueJobName, "actions" | "diagrams">;
 type RouteContext = {
   params: Promise<{ jobId: string }>;
 };
-
-function statusGenerating() {
-  return {
-    state: "generating" as const,
-    updatedAt: new Date().toISOString(),
-  };
-}
 
 export async function generatePipelineArtifact(
   request: Request,
@@ -41,7 +34,7 @@ export async function generatePipelineArtifact(
       return fail(request, { status: 403, code: "forbidden", message: "Invalid CSRF token." });
     }
     const { jobId } = await context.params;
-    if (!checkRateLimit(`${resolveSessionTenantId(session)}:pipeline_${kind}`)) {
+    if (!(await checkRateLimit(`${resolveSessionTenantId(session)}:pipeline_${kind}`))) {
       return fail(request, {
         status: 429,
         code: "rate_limited",
@@ -76,14 +69,7 @@ export async function generatePipelineArtifact(
       return ok(request, { state: "completed" });
     }
 
-    const next = AnalysisOutputSchema.parse({
-      ...result,
-      artifactStatus: {
-        ...result.artifactStatus,
-        [kind]: statusGenerating(),
-      },
-    });
-    await updateJobResult(jobId, next);
+    await markArtifactGenerating(jobId, kind);
     await enqueuePipelineStage({
       name: kind,
       jobId,

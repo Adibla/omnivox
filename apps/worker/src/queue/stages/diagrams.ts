@@ -1,29 +1,30 @@
-import { AnalysisOutputSchema, type PipelineMessage } from "@omnivox/shared";
-import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
-import { getJob, updateJobResult, writeAudit } from "../db";
-import { artifactStatus, outputLanguageInstruction, repairMermaidCode } from "./helpers";
+import type { PipelineMessage } from "@omnivox/shared";
+import { saveGeneratedArtifacts } from "../db";
+import { runArtifactGeneration } from "./generate-artifact";
+import { repairMermaidCode } from "./helpers";
 import type { StageContext } from "./types";
 
+type RawArtifact = {
+  title: string;
+  diagramType: "mindmap" | "flowchart";
+  mermaidCode: string;
+};
+
+function parseOutput(outputText: string) {
+  const candidate = JSON.parse(outputText) as { artifacts: RawArtifact[] };
+  return candidate.artifacts.map((artifact) => ({
+    ...artifact,
+    mermaidCode: repairMermaidCode({
+      diagramType: artifact.diagramType,
+      mermaidCode: artifact.mermaidCode,
+    }),
+  }));
+}
+
 export async function processDiagrams(payload: PipelineMessage, context: StageContext) {
-  const job = await getJob(payload.jobId);
-  if (!job) {
-    throw new Error(`Unknown job ${payload.jobId}.`);
-  }
-  const result = AnalysisOutputSchema.parse(job.result);
-  const transcript = result.normalizedTranscript;
-  if (!transcript) {
-    throw new Error("Missing normalized transcript for diagram generation.");
-  }
-  await updateJobResult(payload.jobId, {
-    ...result,
-    artifactStatus: {
-      ...result.artifactStatus,
-      diagrams: artifactStatus("generating"),
-    },
-  });
-  try {
-    const outLang = outputLanguageInstruction(payload.outputLanguage);
-    const response = await context.openai.responses.create({
+  await runArtifactGeneration(payload, context, {
+    kind: "diagrams",
+    buildRequest: ({ transcript, participants, outLang }) => ({
       model: context.workerEnv.MODEL_REASONING,
       input: [
         {
@@ -34,10 +35,7 @@ Keep labels short and readable. For flowcharts, split longer labels with <br/>; 
         },
         {
           role: "user",
-          content: JSON.stringify({
-            normalizedTranscript: transcript,
-            participants: result.participants ?? [],
-          }),
+          content: JSON.stringify({ normalizedTranscript: transcript, participants }),
         },
       ],
       text: {
@@ -69,51 +67,9 @@ Keep labels short and readable. For flowcharts, split longer labels with <br/>; 
           strict: true,
         },
       },
-    } satisfies ResponseCreateParamsNonStreaming);
-    const candidate = JSON.parse(response.output_text) as {
-      artifacts: Array<{
-        title: string;
-        diagramType: "mindmap" | "flowchart";
-        mermaidCode: string;
-      }>;
-    };
-    const latestJob = await getJob(payload.jobId);
-    if (!latestJob) {
-      throw new Error(`Unknown job ${payload.jobId}.`);
-    }
-    const latest = AnalysisOutputSchema.parse(latestJob.result);
-    const parsed = AnalysisOutputSchema.parse({
-      ...latest,
-      artifacts: candidate.artifacts.map((artifact) => ({
-        ...artifact,
-        mermaidCode: repairMermaidCode({
-          diagramType: artifact.diagramType,
-          mermaidCode: artifact.mermaidCode,
-        }),
-      })),
-      artifactStatus: {
-        ...latest.artifactStatus,
-        diagrams: artifactStatus("completed"),
-      },
-    });
-    await updateJobResult(payload.jobId, parsed);
-    await writeAudit(payload.jobId, "pipeline-step", { state: "diagrams-completed" });
-  } catch (error) {
-    const latestJob = await getJob(payload.jobId);
-    if (!latestJob) {
-      throw new Error(`Unknown job ${payload.jobId}.`);
-    }
-    const latest = AnalysisOutputSchema.parse(latestJob.result);
-    await updateJobResult(payload.jobId, {
-      ...latest,
-      artifactStatus: {
-        ...latest.artifactStatus,
-        diagrams: artifactStatus(
-          "failed",
-          error instanceof Error ? error.message : "Diagram generation failed.",
-        ),
-      },
-    });
-    await writeAudit(payload.jobId, "pipeline-step", { state: "diagrams-failed" });
-  }
+    }),
+    parseOutput,
+    save: saveGeneratedArtifacts,
+    fallbackError: "Diagram generation failed.",
+  });
 }

@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { URL } from "node:url";
 import { logInfo } from "@/lib/logger";
-import { getWorkerDbPool } from "./queue/db";
+import { assertWorkerDatabaseSchema, getWorkerDbPool } from "./queue/db";
 import { startPipelineWorker } from "./queue/worker";
 
 const HEALTH_PORT = Number(process.env.WORKER_HEALTH_PORT ?? 4010);
@@ -57,6 +57,7 @@ function createHealthServer() {
 }
 
 async function main() {
+  await assertWorkerDatabaseSchema();
   const worker = startPipelineWorker();
   await worker.waitUntilReady();
   logInfo({ event: "worker.started" });
