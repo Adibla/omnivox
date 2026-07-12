@@ -14,6 +14,10 @@
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg" alt="Node >= 20" />
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/report.png" alt="Meeting report with executive brief, sentiment, and on-demand actions and diagrams" width="850" />
+</p>
+
 ---
 
 The project is meant to be easy to try locally without relying on external services for login and storage. The compose stack starts Keycloak, MinIO, Postgres, and Redis.
@@ -31,6 +35,13 @@ The AI backend is configurable. You can use an OpenAI business/API key, or point
 - Optional Keycloak login with tenant/user isolation
 - Light/dark theme and localized dashboard
 - Dedicated routes for overview, new analysis, and reports (`/`, `/new`, `/executions/{jobId}`)
+
+## Screenshots
+
+|                                                                                                              |                                                                                               |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| ![Pipeline progress with phase stepper](docs/screenshots/processing.png) _Pipeline progress, phase by phase_ | ![Action board](docs/screenshots/action-board.png) _Action board with drag-and-drop statuses_ |
+| ![Diagram explorer](docs/screenshots/diagram-explorer.png) _Interactive diagram explorer_                    | ![Transcript](docs/screenshots/transcript.png) _Timestamped transcript with audio playback_   |
 
 ## Stack
 
