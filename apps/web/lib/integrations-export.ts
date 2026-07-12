@@ -63,9 +63,7 @@ function escapeIcsText(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
-// RFC 5545 §3.1: content lines longer than 75 octets must be folded with
-// CRLF + a single space. Split on character boundaries so multi-byte
-// characters are never cut in half.
+// RFC 5545 §3.1: fold lines over 75 octets with CRLF + space, without splitting multi-byte chars.
 function foldIcsLine(line: string): string {
   const encoder = new TextEncoder();
   if (encoder.encode(line).length <= 75) {
@@ -93,9 +91,7 @@ function foldIcsLine(line: string): string {
   return parts.join("\r\n ");
 }
 
-// Deterministic slug so re-exporting the same meeting yields stable event
-// UIDs (calendar clients update instead of duplicating), while different
-// meetings never collide.
+// Stable per meeting (re-exports update calendar events), distinct across meetings.
 function icsUidSlug(title: string): string {
   let hash = 5381;
   for (let i = 0; i < title.length; i += 1) {

@@ -115,10 +115,7 @@ export function resolveSupportedAudioFormat(input: {
   return null;
 }
 
-// Some phone recorder apps produce 3GP containers renamed to `.m4a`.
-// Extension and content type both lie, so the AI provider rejects the file
-// only after upload and transcription start; sniffing the ISO-BMFF brand
-// catches it upfront.
+// Some phone recorders save 3GP renamed to `.m4a`: extension and MIME lie, only the bytes tell.
 export function detectUnsupportedAudioContainer(bytes: ArrayBuffer | Uint8Array): "3gp" | null {
   const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   if (view.length < 12) {

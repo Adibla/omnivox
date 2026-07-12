@@ -215,7 +215,7 @@ export function ResultsWorkspace({
         body: JSON.stringify({ targetLanguage: translationLanguage }),
       });
       if (!response.ok) {
-        throw new Error(await parseFailedResponse(response));
+        throw new Error(await parseFailedResponse(response, locale));
       }
       const payload = (await response.json()) as { result: AnalysisOutput };
       setTranslatedResult(payload.result);
@@ -253,7 +253,7 @@ export function ResultsWorkspace({
           headers: { "x-csrf-token": csrfToken },
         });
         if (!response.ok) {
-          setOperationError(await parseFailedResponse(response));
+          setOperationError(await parseFailedResponse(response, locale));
           stopPendingArtifact(artifact);
           return;
         }
@@ -267,6 +267,7 @@ export function ResultsWorkspace({
       csrfReady,
       csrfToken,
       jobId,
+      locale,
       result,
       startPendingArtifact,
       stopPendingArtifact,

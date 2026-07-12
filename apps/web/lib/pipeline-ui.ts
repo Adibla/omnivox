@@ -87,10 +87,6 @@ export function pipelineProgressPercent(state: PipelineState | string): number {
   return Math.round(((idx + 1) / ORDER.length) * 100);
 }
 
-export function uploadPhaseLabel(phase: ClientUploadPhase, locale: string): string {
-  return uploadPhaseLabelForLocale(phase, locale);
-}
-
 export function pipelineStateLabelForLocale(state: PipelineState | string, locale: string): string {
   const labels = locale === "en" ? PIPELINE_STATE_LABELS_EN : PIPELINE_STATE_LABELS_IT;
   return labels[state as PipelineState] ?? state;

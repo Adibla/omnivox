@@ -246,7 +246,7 @@ export function NewAnalysisPanel({
         }),
       });
       if (!presignResponse.ok) {
-        throw new Error(await parseFailedResponse(presignResponse));
+        throw new Error(await parseFailedResponse(presignResponse, locale));
       }
 
       const presignPayload = (await presignResponse.json()) as {
@@ -285,7 +285,7 @@ export function NewAnalysisPanel({
         }),
       });
       if (!completeResponse.ok) {
-        throw new Error(await parseFailedResponse(completeResponse));
+        throw new Error(await parseFailedResponse(completeResponse, locale));
       }
 
       setUploadPhase("starting");
@@ -303,7 +303,7 @@ export function NewAnalysisPanel({
         }),
       });
       if (!startResponse.ok) {
-        throw new Error(await parseFailedResponse(startResponse));
+        throw new Error(await parseFailedResponse(startResponse, locale));
       }
       const started = (await startResponse.json()) as { jobId: string };
       setUploadPhase("awaiting_pipeline");

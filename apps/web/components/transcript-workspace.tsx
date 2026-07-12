@@ -33,7 +33,7 @@ export function TranscriptWorkspace({
   csrfReady,
   onToast,
 }: TranscriptWorkspaceProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const transcript = result.normalizedTranscript?.trim() ?? "";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- segments is a stable read from `result` props; tracking it is the intended closure.
   const segments = result.transcriptSegments ?? [];
@@ -88,7 +88,7 @@ export function TranscriptWorkspace({
         headers: { "x-csrf-token": csrfToken },
       });
       if (!response.ok) {
-        throw new Error(await parseFailedResponse(response));
+        throw new Error(await parseFailedResponse(response, locale));
       }
       const data = (await response.json()) as { url?: string };
       if (!data.url) {
@@ -100,7 +100,7 @@ export function TranscriptWorkspace({
     } finally {
       setAudioLoading(false);
     }
-  }, [jobId, csrfReady, csrfToken, t]);
+  }, [jobId, csrfReady, csrfToken, t, locale]);
 
   useEffect(() => {
     if (
@@ -193,7 +193,7 @@ export function TranscriptWorkspace({
         body: JSON.stringify({ question: q }),
       });
       if (!response.ok) {
-        throw new Error(await parseFailedResponse(response));
+        throw new Error(await parseFailedResponse(response, locale));
       }
       const data = (await response.json()) as { answer?: string };
       setAnswer(data.answer ?? "");
