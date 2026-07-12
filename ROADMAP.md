@@ -37,6 +37,7 @@ This is a working list of improvements for future releases. It is not a commitme
 
 ## Self-Hosting
 
+- Prebuilt web and worker images published to a container registry from CI.
 - Reverse proxy TLS examples.
 - Clearer local reset and demo seed scripts.
 - Kubernetes/Helm examples.

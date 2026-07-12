@@ -1,6 +1,6 @@
 # Deployment
 
-Three ways to run OmniVox, from quickest to most manual. Kubernetes/Helm
+Four ways to run OmniVox, from quickest to most manual. Kubernetes/Helm
 examples are on the [roadmap](../ROADMAP.md).
 
 ## 1. Full Docker stack (no local Node.js)
@@ -37,7 +37,42 @@ npm run dev          # web
 npm run dev:worker   # worker, in a second terminal
 ```
 
-## 3. Manual server deployment
+## 3. Production with Docker
+
+The bundled compose file is the local trial stack. In production you keep your
+managed Postgres, Redis, S3-compatible storage, and identity provider, and run
+only the two application images against them.
+
+Build the images from the repository root (locally or in CI):
+
+```bash
+docker build -f apps/web/Dockerfile -t <registry>/omnivox-web:0.1.0 .
+docker build -f apps/worker/Dockerfile -t <registry>/omnivox-worker:0.1.0 .
+```
+
+Apply migrations as a release step — a one-shot container from the worker
+image:
+
+```bash
+docker run --rm -e DATABASE_URL=postgresql://... \
+  -w /app <registry>/omnivox-worker:0.1.0 node scripts/migrate.mjs
+```
+
+Then run the two services with your orchestrator of choice (Compose, Swarm,
+Nomad, ECS, ...):
+
+| Service  | Image                             | Environment                                                                                                                                                                                                        |
+| -------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `web`    | `omnivox-web` (port 3000)         | `DATABASE_URL`, `REDIS_URL`, `S3_*` (plus `S3_PUBLIC_ENDPOINT` when storage is reached over an internal network), `SESSION_SECRET`, `OPENAI_API_KEY`/`OPENAI_BASE_URL`, `APP_BASE_URL`, `AUTH_MODE` + `KEYCLOAK_*` |
+| `worker` | `omnivox-worker` (health on 4010) | `DATABASE_URL`, `REDIS_URL`, `S3_*`, `OPENAI_API_KEY`/`OPENAI_BASE_URL`                                                                                                                                            |
+
+Scaling notes: workers scale horizontally — BullMQ distributes jobs across
+replicas. Keep the web at one replica until the in-memory rate limiter moves
+to a shared store (see the roadmap). Wire the worker's `GET /health` and
+`GET /ready` into your orchestrator's probes, and terminate TLS in front of
+the web service.
+
+## 4. Manual server deployment
 
 For a single server without Docker for the app processes:
 
@@ -48,7 +83,7 @@ NODE_ENV=production npm run start -w apps/web
 NODE_ENV=production npm run start -w apps/worker   # second process
 ```
 
-Requirements and hardening for any real deployment:
+Requirements and hardening for any real deployment (Docker or manual):
 
 - **Set `NODE_ENV=production`** — the weak default `SESSION_SECRET` is only
   rejected in production mode.
