@@ -36,6 +36,7 @@ The schema is managed with forward-only SQL migrations in `db/migrations`. Never
 mutate the schema at runtime.
 
 - Add a new file named `NNNN_short_description.sql` (incrementing the numeric prefix).
+- Never edit a migration that has already been applied or merged — add a new one.
 - Keep migrations idempotent where reasonable.
 - Run `npm run db:migrate` to apply.
 

@@ -35,10 +35,14 @@ function readMigrations() {
     .map((name) => ({ version: name, sql: readFileSync(join(migrationsDir, name), "utf8") }));
 }
 
+// Arbitrary app-wide lock id: two concurrent deploys serialize instead of racing.
+const MIGRATION_LOCK_ID = 727270001;
+
 async function main() {
   const client = new pg.Client({ connectionString: resolveDatabaseUrl() });
   await client.connect();
   try {
+    await client.query("select pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await client.query(`
       create table if not exists schema_migrations (
         version text primary key,
@@ -72,6 +76,7 @@ async function main() {
     }
     console.log(`Applied ${pending.length} migration(s).`);
   } finally {
+    await client.query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]).catch(() => {});
     await client.end();
   }
 }
