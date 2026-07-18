@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { PipelineStartRequestSchema } from "@omnivox/shared";
 import {
   ensureSessionCookie,
@@ -18,10 +18,17 @@ import { ZodError } from "zod";
 
 function createIdempotencyKey(input: {
   meetingId: string;
-  objectKey: string;
+  objectKey?: string | null;
+  transcriptText?: string | null;
   ownerSubject?: string | null;
 }) {
-  return `${input.ownerSubject ?? "anonymous"}:${input.meetingId}:${input.objectKey}`;
+  // Text-mode jobs have no object key, so they dedupe on a hash of the transcript.
+  const source = input.objectKey
+    ? `obj:${input.objectKey}`
+    : `txt:${createHash("sha256")
+        .update(input.transcriptText ?? "")
+        .digest("hex")}`;
+  return `${input.ownerSubject ?? "anonymous"}:${input.meetingId}:${source}`;
 }
 
 function estimateTokenUsage(input: { transcriptText?: string }) {
@@ -53,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const payload = PipelineStartRequestSchema.parse(await request.json());
-    if (!payload.objectKey.startsWith(`${tenantId}/`)) {
+    if (payload.objectKey && !payload.objectKey.startsWith(`${tenantId}/`)) {
       return fail(request, {
         status: 403,
         code: "forbidden",
@@ -64,6 +71,7 @@ export async function POST(request: Request) {
     const idempotencyKey = createIdempotencyKey({
       meetingId: payload.meetingId,
       objectKey: payload.objectKey,
+      transcriptText: payload.transcriptText,
       ownerSubject: owner.ownerSubject,
     });
     const existing = await getJobByIdempotency(idempotencyKey);
@@ -115,7 +123,7 @@ export async function POST(request: Request) {
       payload: {
         jobId,
         meetingId: payload.meetingId,
-        objectKey: payload.objectKey,
+        objectKey: payload.objectKey ?? null,
         transcriptText: payload.transcriptText ?? null,
         meetingTemplate: payload.meetingTemplate,
         outputLanguage: payload.outputLanguage,

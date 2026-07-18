@@ -51,10 +51,12 @@ export async function processTranscription(payload: PipelineMessage, context: St
   let transcriptSegments: TranscriptSegment[] = [];
   if (payload.transcriptText && payload.transcriptText.length > 40) {
     transcript = payload.transcriptText;
-  } else {
+  } else if (payload.objectKey) {
     const fromAudio = await transcribeFromStorage(payload.objectKey, payload.languageHint, context);
     transcript = fromAudio.text;
     transcriptSegments = fromAudio.segments;
+  } else {
+    throw new Error("Job has neither a transcript nor an audio object.");
   }
   await writeAudit(payload.jobId, "pipeline-step", { state: "transcribing" });
   await context.pipelineQueue.add(

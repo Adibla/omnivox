@@ -62,6 +62,23 @@ const SUPPORTED_AUDIO_LABEL = SUPPORTED_AUDIO_FORMATS.map((format) => format.toU
 );
 const AUDIO_MAX_MB = Math.floor(AUDIO_MAX_BYTES / (1024 * 1024));
 
+const SAMPLE_TRANSCRIPT: Record<string, string> = {
+  en: `Weekly sync on the Q3 launch.
+Anna: the pricing page is on track, I'll ship it by Friday and I own the copy review.
+Luca: there's a risk on the payment provider migration, it's behind schedule and we need a decision by Tuesday.
+Marco: agreed. Let's postpone the newsletter until the pricing page is live, otherwise we send people to a page that isn't ready.
+Anna: fine. Marco, can you follow up with legal about the new terms of service before the launch date?
+Marco: yes, I'll do that this week.
+Luca: last thing, the staging environment keeps crashing under load, I'll investigate but it might block the release.`,
+  it: `Sync settimanale sul lancio del Q3.
+Anna: la pagina prezzi è in linea, la rilascio venerdì e mi occupo io della revisione dei testi.
+Luca: c'è un rischio sulla migrazione del payment provider, è in ritardo e serve una decisione entro martedì.
+Marco: d'accordo. Rimandiamo la newsletter finché la pagina prezzi non è online, altrimenti mandiamo le persone su una pagina non pronta.
+Anna: ok. Marco, puoi sentire il legale per i nuovi termini di servizio prima della data di lancio?
+Marco: sì, me ne occupo questa settimana.
+Luca: ultima cosa, l'ambiente di staging continua a crashare sotto carico, indago io ma potrebbe bloccare il rilascio.`,
+};
+
 function slugifyMeetingId(value: string): string {
   return value
     .normalize("NFKD")
@@ -133,6 +150,7 @@ export function NewAnalysisPanel({
   const { csrfToken, ready: csrfReady } = useSessionCsrf();
   const [wizardStep, setWizardStep] = useState(0);
   const [analysisName, setAnalysisName] = useState("");
+  const [inputMode, setInputMode] = useState<"audio" | "transcript">("audio");
   const [file, setFile] = useState<File | null>(null);
   const [meetingTemplate, setMeetingTemplate] = useState<MeetingTemplate>("generic");
   const [outputLanguage, setOutputLanguage] = useState<OutputLanguage>("auto");
@@ -149,6 +167,15 @@ export function NewAnalysisPanel({
       setUploadPhase("idle");
     }
   }, [pipelineJob?.state]);
+
+  useEffect(() => {
+    // Only re-localize the sample itself, never a user-edited transcript.
+    setTranscriptText((current) =>
+      Object.values(SAMPLE_TRANSCRIPT).includes(current)
+        ? (SAMPLE_TRANSCRIPT[locale] ?? SAMPLE_TRANSCRIPT.en)
+        : current,
+    );
+  }, [locale]);
 
   const progressValue = useMemo(() => {
     if (activeJobId && pipelineJob && pipelineJob.state !== "failed") {
@@ -185,9 +212,69 @@ export function NewAnalysisPanel({
     }
   };
 
+  const startPipeline = async (
+    csrf: string,
+    body: {
+      meetingId: string;
+      displayTitle: string;
+      objectKey?: string;
+      transcriptText?: string;
+    },
+  ) => {
+    const startResponse = await fetch("/api/v1/pipeline/start", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-csrf-token": csrf },
+      body: JSON.stringify({ ...body, meetingTemplate, outputLanguage, languageHint }),
+    });
+    if (!startResponse.ok) {
+      throw new Error(await parseFailedResponse(startResponse, locale));
+    }
+    return (await startResponse.json()) as { jobId: string };
+  };
+
   const runPipeline = async () => {
+    if (!csrfReady || !csrfToken) {
+      setError(
+        locale === "en"
+          ? "Session is initializing… try again in a moment."
+          : "Inizializzazione sessione in corso… riprova tra un attimo.",
+      );
+      return;
+    }
+    const displayTitle = analysisName.trim();
+    const safeMeetingId = buildMeetingId(displayTitle);
+
+    if (inputMode === "transcript") {
+      const text = transcriptText.trim();
+      if (text.length < 40) {
+        setError(
+          locale === "en"
+            ? "Paste a transcript of at least 40 characters."
+            : "Incolla una trascrizione di almeno 40 caratteri.",
+        );
+        return;
+      }
+      setError("");
+      setIsRunning(true);
+      try {
+        setUploadPhase("starting");
+        const started = await startPipeline(csrfToken, {
+          meetingId: safeMeetingId,
+          displayTitle,
+          transcriptText: text,
+        });
+        setUploadPhase("awaiting_pipeline");
+        onJobStarted({ jobId: started.jobId, meetingId: safeMeetingId, title: displayTitle });
+      } catch (runError) {
+        setUploadPhase("idle");
+        setIsRunning(false);
+        setError(runError instanceof Error ? runError.message : t("new.unexpectedError"));
+      }
+      return;
+    }
+
     if (!file) {
-      setError("Seleziona un file audio.");
+      setError(locale === "en" ? "Select an audio file." : "Seleziona un file audio.");
       return;
     }
     const audioFormat = resolveSupportedAudioFormat({
@@ -210,12 +297,6 @@ export function NewAnalysisPanel({
       );
       return;
     }
-    if (!csrfReady || !csrfToken) {
-      setError("Inizializzazione sessione in corso… riprova tra un attimo.");
-      return;
-    }
-    const displayTitle = analysisName.trim();
-    const safeMeetingId = buildMeetingId(displayTitle);
     setError("");
     setIsRunning(true);
     try {
@@ -289,23 +370,12 @@ export function NewAnalysisPanel({
       }
 
       setUploadPhase("starting");
-      const startResponse = await fetch("/api/v1/pipeline/start", {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({
-          meetingId: safeMeetingId,
-          displayTitle,
-          objectKey: presignPayload.objectKey,
-          transcriptText: transcriptText.trim().length >= 40 ? transcriptText.trim() : undefined,
-          meetingTemplate,
-          outputLanguage,
-          languageHint,
-        }),
+      const started = await startPipeline(csrfToken, {
+        meetingId: safeMeetingId,
+        displayTitle,
+        objectKey: presignPayload.objectKey,
+        transcriptText: transcriptText.trim().length >= 40 ? transcriptText.trim() : undefined,
       });
-      if (!startResponse.ok) {
-        throw new Error(await parseFailedResponse(startResponse, locale));
-      }
-      const started = (await startResponse.json()) as { jobId: string };
       setUploadPhase("awaiting_pipeline");
       onJobStarted({
         jobId: started.jobId,
@@ -320,7 +390,8 @@ export function NewAnalysisPanel({
   };
 
   const canProceedStep0 = analysisName.trim().length >= 3;
-  const canProceedStep1 = Boolean(file) && !fileError;
+  const canProceedStep1 =
+    inputMode === "transcript" ? transcriptText.trim().length >= 40 : Boolean(file) && !fileError;
   const showPipelineProgress = isRunning || (Boolean(activeJobId) && !isTerminal);
   const outputLangOptions: { value: OutputLanguage; label: string; hint: string }[] = [
     {
@@ -421,64 +492,112 @@ export function NewAnalysisPanel({
         {wizardStep === 1 ? (
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="audio">{t("new.file")}</Label>
-              <label
-                htmlFor="audio"
-                className="group flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/25 p-6 text-center transition-colors hover:border-primary/60 hover:bg-muted/45"
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  selectFile(event.dataTransfer.files?.[0] ?? null);
-                }}
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-transform group-hover:scale-105">
-                  <UploadCloud aria-hidden="true" />
-                </span>
-                <span className="mt-3 text-sm font-medium">
-                  {file ? file.name : t("new.fileDrop")}
-                </span>
-                <span className="mt-1 text-xs text-muted-foreground">
-                  {file
-                    ? `${formatBytes(file.size)} · ${resolveSupportedAudioFormat({ fileName: file.name, contentType: file.type })?.toUpperCase() ?? "Audio"}`
-                    : `Max ${AUDIO_MAX_MB} MB`}
-                </span>
-              </label>
-              <Input
-                id="audio"
-                type="file"
-                accept={SUPPORTED_AUDIO_ACCEPT}
-                disabled={isRunning}
-                className="sr-only"
-                onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
-              />
-              {file ? (
-                <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/35 px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
-                  </div>
+              <div className="inline-flex rounded-md border border-border bg-muted/30 p-1">
+                {(["audio", "transcript"] as const).map((mode) => (
+                  <Button
+                    key={mode}
+                    type="button"
+                    size="sm"
+                    variant={inputMode === mode ? "default" : "ghost"}
+                    disabled={isRunning}
+                    onClick={() => {
+                      setInputMode(mode);
+                      setError("");
+                    }}
+                  >
+                    {mode === "audio" ? t("new.modeAudio") : t("new.modeTranscript")}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            {inputMode === "transcript" ? (
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="transcript-input">{t("new.transcriptInput")}</Label>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => selectFile(null)}
+                    size="sm"
                     disabled={isRunning}
-                    aria-label={t("new.removeFile")}
+                    onClick={() => {
+                      setTranscriptText(SAMPLE_TRANSCRIPT[locale] ?? SAMPLE_TRANSCRIPT.en);
+                      setError("");
+                    }}
                   >
-                    <X aria-hidden="true" />
+                    {t("new.sample")}
                   </Button>
                 </div>
-              ) : null}
-              {fileError ? (
-                <p className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                  {fileError}
+                <Textarea
+                  id="transcript-input"
+                  value={transcriptText}
+                  onChange={(e) => setTranscriptText(e.target.value)}
+                  placeholder={t("new.transcriptPlaceholder")}
+                  disabled={isRunning}
+                  className="min-h-[200px]"
+                />
+                <p className="text-xs text-muted-foreground">{t("new.transcriptInputHelp")}</p>
+              </div>
+            ) : (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="audio">{t("new.file")}</Label>
+                <label
+                  htmlFor="audio"
+                  className="group flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/25 p-6 text-center transition-colors hover:border-primary/60 hover:bg-muted/45"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    selectFile(event.dataTransfer.files?.[0] ?? null);
+                  }}
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-transform group-hover:scale-105">
+                    <UploadCloud aria-hidden="true" />
+                  </span>
+                  <span className="mt-3 text-sm font-medium">
+                    {file ? file.name : t("new.fileDrop")}
+                  </span>
+                  <span className="mt-1 text-xs text-muted-foreground">
+                    {file
+                      ? `${formatBytes(file.size)} · ${resolveSupportedAudioFormat({ fileName: file.name, contentType: file.type })?.toUpperCase() ?? "Audio"}`
+                      : `Max ${AUDIO_MAX_MB} MB`}
+                  </span>
+                </label>
+                <Input
+                  id="audio"
+                  type="file"
+                  accept={SUPPORTED_AUDIO_ACCEPT}
+                  disabled={isRunning}
+                  className="sr-only"
+                  onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
+                />
+                {file ? (
+                  <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/35 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => selectFile(null)}
+                      disabled={isRunning}
+                      aria-label={t("new.removeFile")}
+                    >
+                      <X aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : null}
+                {fileError ? (
+                  <p className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                    {fileError}
+                  </p>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  {t("new.formats")}: {SUPPORTED_AUDIO_LABEL} · max {AUDIO_MAX_MB} MB.
                 </p>
-              ) : null}
-              <p className="text-xs text-muted-foreground">
-                {t("new.formats")}: {SUPPORTED_AUDIO_LABEL} · max {AUDIO_MAX_MB} MB.
-              </p>
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="template">{t("new.template")}</Label>
               <select
@@ -568,19 +687,23 @@ export function NewAnalysisPanel({
 
         {wizardStep === 2 ? (
           <div className="space-y-4">
-            <details className="ui-panel-quiet p-4">
-              <summary className="cursor-pointer text-sm font-medium">{t("new.advanced")}</summary>
-              <div className="mt-3 space-y-2">
-                <Label htmlFor="seed">{t("new.transcriptSeed")}</Label>
-                <Textarea
-                  id="seed"
-                  value={transcriptText}
-                  onChange={(e) => setTranscriptText(e.target.value)}
-                  placeholder={t("new.transcriptPlaceholder")}
-                  disabled={isRunning}
-                />
-              </div>
-            </details>
+            {inputMode === "audio" ? (
+              <details className="ui-panel-quiet p-4">
+                <summary className="cursor-pointer text-sm font-medium">
+                  {t("new.advanced")}
+                </summary>
+                <div className="mt-3 space-y-2">
+                  <Label htmlFor="seed">{t("new.transcriptSeed")}</Label>
+                  <Textarea
+                    id="seed"
+                    value={transcriptText}
+                    onChange={(e) => setTranscriptText(e.target.value)}
+                    placeholder={t("new.transcriptPlaceholder")}
+                    disabled={isRunning}
+                  />
+                </div>
+              </details>
+            ) : null}
             <div className="flex flex-wrap justify-between gap-2">
               <Button
                 type="button"
@@ -599,10 +722,14 @@ export function NewAnalysisPanel({
                       size="lg"
                       className="h-12 px-5 text-base shadow-sm"
                       onClick={() => void runPipeline()}
-                      disabled={!csrfReady || isRunning || !file || Boolean(fileError)}
+                      disabled={!csrfReady || isRunning || !canProceedStep1}
                     >
                       <Play aria-hidden="true" />
-                      {isRunning ? t("new.running") : t("new.run")}
+                      {isRunning
+                        ? t("new.running")
+                        : inputMode === "transcript"
+                          ? t("new.runTranscript")
+                          : t("new.run")}
                     </Button>
                   </span>
                 </TooltipTrigger>

@@ -72,7 +72,14 @@ export const dictionaries = {
     "new.transcriptSeed": "Trascritto già disponibile (opzionale)",
     "new.transcriptPlaceholder":
       "Incolla un trascritto completo (min. 40 caratteri) per saltare la trascrizione automatica.",
+    "new.modeAudio": "Carica audio",
+    "new.modeTranscript": "Incolla trascrizione",
+    "new.transcriptInput": "Trascrizione",
+    "new.transcriptInputHelp":
+      "Incolla la trascrizione della riunione (min. 40 caratteri). Nessun audio necessario.",
+    "new.sample": "Prova con un esempio",
     "new.run": "Carica e analizza",
+    "new.runTranscript": "Analizza trascrizione",
     "new.running": "Elaborazione...",
     "new.progress": "Avanzamento",
     "new.progressHelp":
@@ -381,7 +388,14 @@ export const dictionaries = {
     "new.transcriptSeed": "Existing transcript (optional)",
     "new.transcriptPlaceholder":
       "Paste a full transcript (min. 40 characters) to skip automatic transcription.",
+    "new.modeAudio": "Upload audio",
+    "new.modeTranscript": "Paste transcript",
+    "new.transcriptInput": "Transcript",
+    "new.transcriptInputHelp":
+      "Paste the meeting transcript (min. 40 characters). No audio needed.",
+    "new.sample": "Try with a sample",
     "new.run": "Upload and analyze",
+    "new.runTranscript": "Analyze transcript",
     "new.running": "Processing...",
     "new.progress": "Progress",
     "new.progressHelp":

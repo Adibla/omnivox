@@ -8,6 +8,7 @@ export type PipelineJobResponse = {
   jobId: string;
   meetingId?: string;
   displayTitle?: string | null;
+  objectKey?: string | null;
   state: string;
   result?: AnalysisOutput;
   error?: string;

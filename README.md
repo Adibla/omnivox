@@ -27,6 +27,7 @@ The AI backend is configurable. You can use an OpenAI business/API key, or point
 ## What It Does
 
 - Direct browser upload to S3-compatible storage with presigned URLs
+- Transcript-only analyses: paste a transcript and skip the audio upload entirely
 - Audio transcription handled by a separate worker
 - Report with summary, sentiment, participants, and transcript segments
 - Diagrams and actions generated only when needed
