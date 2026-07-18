@@ -42,12 +42,13 @@ export async function createJob(input: {
   tenantId?: string | null;
   ownerIssuer?: string | null;
   ownerSubject?: string | null;
+  startPayload?: Record<string, unknown> | null;
 }) {
   await initializeDatabase();
   const db = getDbPool();
   await db.query(
-    `insert into pipeline_jobs (external_id, idempotency_key, meeting_id, display_title, object_key, state, token_estimate, tenant_id, owner_issuer, owner_subject)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `insert into pipeline_jobs (external_id, idempotency_key, meeting_id, display_title, object_key, state, token_estimate, tenant_id, owner_issuer, owner_subject, start_payload)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       input.jobId,
       input.idempotencyKey,
@@ -59,8 +60,26 @@ export async function createJob(input: {
       input.tenantId ?? null,
       input.ownerIssuer ?? null,
       input.ownerSubject ?? null,
+      input.startPayload ? JSON.stringify(input.startPayload) : null,
     ],
   );
+}
+
+export async function resetJobForRetry(jobId: string) {
+  await initializeDatabase();
+  await getDbPool().query(
+    `update pipeline_jobs set state = 'queued', error = null, updated_at = now() where external_id = $1`,
+    [jobId],
+  );
+}
+
+export async function loadStartPayload(jobId: string): Promise<Record<string, unknown> | null> {
+  await initializeDatabase();
+  const { rows } = await getDbPool().query(
+    `select start_payload from pipeline_jobs where external_id = $1 and deleted_at is null`,
+    [jobId],
+  );
+  return (rows[0]?.start_payload as Record<string, unknown> | null) ?? null;
 }
 
 export async function getJobById(jobId: string): Promise<DbPipelineJob | null> {

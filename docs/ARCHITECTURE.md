@@ -186,6 +186,7 @@ All product APIs live under `/api/v1`.
 | `POST`   | `/pipeline/{jobId}/actions/generate`   | generate actions on demand                 |
 | `POST`   | `/pipeline/{jobId}/diagrams/generate`  | generate diagrams on demand                |
 | `PATCH`  | `/pipeline/{jobId}/actions/{actionId}` | update action card status                  |
+| `POST`   | `/pipeline/{jobId}/retry`              | re-enqueue a failed analysis               |
 | `POST`   | `/pipeline/{jobId}/read-audio`         | temporary URL to replay source audio       |
 | `POST`   | `/pipeline/{jobId}/ask`                | ask a question about the meeting           |
 | `POST`   | `/pipeline/{jobId}/translate`          | translate the report                       |

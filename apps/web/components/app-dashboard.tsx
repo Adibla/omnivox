@@ -262,6 +262,17 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
           updatedAt: new Date().toISOString(),
         });
         refreshRecent();
+      } else if (shouldUpdateRecent) {
+        setRecent((items) => [
+          {
+            jobId: job.jobId,
+            meetingId: meetingId || job.jobId,
+            title,
+            status: "failed",
+            updatedAt: new Date().toISOString(),
+          },
+          ...items.filter((item) => item.jobId !== job.jobId),
+        ]);
       }
       setView("results");
     }
@@ -331,6 +342,38 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
       }
     },
     [activeJobId, authMode, authenticated, csrfToken, refreshRecent, router],
+  );
+
+  const handleRetryRecent = useCallback(
+    async (jobId: string, e: MouseEvent) => {
+      e.stopPropagation();
+      if (!csrfToken) {
+        return;
+      }
+      const response = await fetch(`/api/v1/pipeline/${jobId}/retry`, {
+        method: "POST",
+        headers: { "x-csrf-token": csrfToken },
+      });
+      if (!response.ok) {
+        return;
+      }
+      startedJobIdsRef.current.add(jobId);
+      rememberStartedJob(jobId);
+      const item = recent.find((r) => r.jobId === jobId);
+      setRecent((items) =>
+        items.map((r) => (r.jobId === jobId ? { ...r, status: "in_progress" } : r)),
+      );
+      if (item) {
+        setResultContext({ meetingId: item.meetingId, title: item.title });
+      }
+      setActiveJobId(jobId);
+      setView("results");
+      setMobileNavOpen(false);
+      window.history.pushState(null, "", `/executions/${encodeURIComponent(jobId)}`);
+      // Covers retrying a job that is already the open one, where activeJobId does not change.
+      window.dispatchEvent(new CustomEvent("omni-pipeline-watch", { detail: { jobId } }));
+    },
+    [csrfToken, recent],
   );
 
   const requestRemoveRecent = useCallback((jobId: string, e: MouseEvent) => {
@@ -414,6 +457,7 @@ export function AppDashboard({ initialView = "overview", initialJobId = null }: 
       }}
       onOpenRecent={openRecent}
       onRequestRemoveRecent={requestRemoveRecent}
+      onRetryRecent={handleRetryRecent}
       onToggleSidebarCollapsed={toggleSidebarCollapsed}
     />
   );

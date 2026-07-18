@@ -32,6 +32,15 @@ export function getPipelineQueue() {
   return pipelineQueue;
 }
 
+// Stage jobs use deterministic ids; without clearing, BullMQ dedupes a retry against the old entries.
+export async function clearPipelineStageJobs(jobId: string) {
+  const queue = getPipelineQueue();
+  const stages: PipelineQueueJobName[] = ["transcription", "preprocess", "reasoning"];
+  await Promise.all(
+    stages.map((stage) => queue.remove(buildQueueJobId([jobId, stage])).catch(() => undefined)),
+  );
+}
+
 export async function enqueuePipelineStage(input: {
   name: PipelineQueueJobName;
   payload: Record<string, unknown>;

@@ -97,6 +97,7 @@ export function ResultsWorkspace({
   const [operationError, setOperationError] = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     setTranslatedResult(null);
@@ -224,6 +225,30 @@ export function ResultsWorkspace({
       setTranslationError(error instanceof Error ? error.message : t("result.translationFail"));
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const onRetry = async () => {
+    if (!jobId || !csrfReady || !csrfToken) {
+      return;
+    }
+    setIsRetrying(true);
+    setOperationError("");
+    try {
+      const response = await fetch(`/api/v1/pipeline/${jobId}/retry`, {
+        method: "POST",
+        headers: { "x-csrf-token": csrfToken },
+      });
+      if (!response.ok) {
+        throw new Error(await parseFailedResponse(response, locale));
+      }
+      // The job was terminal, so polling had stopped; resume it.
+      window.dispatchEvent(new CustomEvent("omni-pipeline-watch", { detail: { jobId } }));
+      flashCopied(t("result.retryStarted"));
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : t("result.genericError"));
+    } finally {
+      setIsRetrying(false);
     }
   };
 
@@ -552,6 +577,23 @@ export function ResultsWorkspace({
         <Alert variant="destructive" className="mt-8">
           <AlertTitle>{t("result.failed")}</AlertTitle>
           <AlertDescription>{pipelineJob.error ?? t("result.genericError")}</AlertDescription>
+          <div className="mt-3">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => void onRetry()}
+              disabled={!csrfReady || isRetrying}
+            >
+              {isRetrying ? (
+                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw aria-hidden="true" className="h-4 w-4" />
+              )}
+              {t("result.retry")}
+            </Button>
+          </div>
         </Alert>
       ) : null}
 

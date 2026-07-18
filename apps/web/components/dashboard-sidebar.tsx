@@ -11,6 +11,7 @@ import {
   Inbox,
   LogOut,
   Plus,
+  RotateCcw,
   Trash2,
   UserCircle,
   X,
@@ -45,6 +46,7 @@ type DashboardSidebarProps = {
   onOpenOverview: () => void;
   onOpenRecent: (item: RecentMeeting) => void;
   onRequestRemoveRecent: (jobId: string, event: MouseEvent) => void;
+  onRetryRecent: (jobId: string, event: MouseEvent) => void;
   onToggleSidebarCollapsed: () => void;
 };
 
@@ -100,6 +102,7 @@ export function DashboardSidebar({
   onOpenOverview,
   onOpenRecent,
   onRequestRemoveRecent,
+  onRetryRecent,
   onToggleSidebarCollapsed,
 }: DashboardSidebarProps) {
   const { t } = useI18n();
@@ -221,6 +224,7 @@ export function DashboardSidebar({
                   onConfirmRemoveRecent={onConfirmRemoveRecent}
                   onOpenRecent={onOpenRecent}
                   onRequestRemoveRecent={onRequestRemoveRecent}
+                  onRetryRecent={onRetryRecent}
                 />
               ))
             )}
@@ -267,6 +271,7 @@ function RecentExecutionItem({
   onConfirmRemoveRecent,
   onOpenRecent,
   onRequestRemoveRecent,
+  onRetryRecent,
 }: Pick<
   DashboardSidebarProps,
   | "activeJobId"
@@ -276,6 +281,7 @@ function RecentExecutionItem({
   | "onConfirmRemoveRecent"
   | "onOpenRecent"
   | "onRequestRemoveRecent"
+  | "onRetryRecent"
 > & { item: RecentMeeting }) {
   const { t } = useI18n();
   const active = item.jobId === activeJobId;
@@ -340,6 +346,18 @@ function RecentExecutionItem({
           </span>
         </button>
         <div className="flex w-8 shrink-0 flex-col items-center gap-1 opacity-100 transition-opacity md:opacity-65 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+          {item.status === "failed" ? (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-md text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              onClick={(event) => void onRetryRecent(item.jobId, event)}
+              aria-label={t("result.retry")}
+            >
+              <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="icon"

@@ -107,6 +107,13 @@ export async function POST(request: Request) {
       tenantId,
       ownerIssuer: owner.ownerIssuer,
       ownerSubject: owner.ownerSubject,
+      // Only options without their own column; object key and meeting id come from the job row on retry.
+      startPayload: {
+        transcriptText: payload.transcriptText ?? null,
+        meetingTemplate: payload.meetingTemplate,
+        outputLanguage: payload.outputLanguage,
+        languageHint: payload.languageHint,
+      },
     });
     await writeAuditEvent({
       jobId,

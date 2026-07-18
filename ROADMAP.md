@@ -5,7 +5,7 @@ This is a working list of improvements for future releases. It is not a commitme
 ## Hardening
 
 - Pluggable queue transport, with possible RabbitMQ or NATS support if a dedicated broker, multi-language workers, or more explicit routing become useful.
-- DLQ tooling for inspecting, retrying, and purging failed jobs.
+- DLQ tooling for inspecting and purging failed jobs (per-job retry is available from the report).
 - More complete readiness checks for web and worker: Redis, Postgres, S3-compatible storage, and AI configuration.
 - Operational metrics: queue depth, job duration, error rate per stage, average job age.
 - Configurable retention for audio, results, audit data, and sessions.
@@ -43,6 +43,7 @@ This is a working list of improvements for future releases. It is not a commitme
 
 ## Developer Experience
 
+- Adopt a data-fetching library (e.g. TanStack Query) to replace the hand-rolled polling and the `window` event bus with typed, traceable refetch/invalidation.
 - E2E suite that can run against the full local stack.
 - Small, safe audio fixtures for reproducible tests.
 - `make` targets or npm scripts for setup, reset, tests, and smoke checks.
