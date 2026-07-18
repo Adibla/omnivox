@@ -1,12 +1,7 @@
 import type { PipelineState } from "@omnivox/shared";
 
 export type ClientUploadPhase =
-  | "idle"
-  | "hashing"
-  | "uploading"
-  | "verifying"
-  | "starting"
-  | "awaiting_pipeline";
+  "idle" | "hashing" | "uploading" | "verifying" | "starting" | "awaiting_pipeline";
 
 export const PIPELINE_STATE_LABELS_IT: Record<PipelineState, string> = {
   queued: "Preparazione",

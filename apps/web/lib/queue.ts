@@ -3,11 +3,7 @@ import IORedis from "ioredis";
 import { getEnv } from "./env";
 
 export type PipelineQueueJobName =
-  | "transcription"
-  | "preprocess"
-  | "reasoning"
-  | "diagrams"
-  | "actions";
+  "transcription" | "preprocess" | "reasoning" | "diagrams" | "actions";
 
 let redisConnection: IORedis | null = null;
 let pipelineQueue: Queue | null = null;
