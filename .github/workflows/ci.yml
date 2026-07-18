@@ -12,7 +12,7 @@ jobs:
       OPENAI_API_KEY: ci-placeholder-key-0000000000
       SESSION_SECRET: ci-placeholder-session-secret
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
