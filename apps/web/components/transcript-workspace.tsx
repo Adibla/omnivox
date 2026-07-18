@@ -23,6 +23,7 @@ export type TranscriptWorkspaceProps = {
   result: AnalysisOutput;
   csrfToken: string;
   csrfReady: boolean;
+  hasAudio?: boolean;
   onToast: (message: string) => void;
 };
 
@@ -31,6 +32,7 @@ export function TranscriptWorkspace({
   result,
   csrfToken,
   csrfReady,
+  hasAudio = true,
   onToast,
 }: TranscriptWorkspaceProps) {
   const { t, locale } = useI18n();
@@ -234,7 +236,7 @@ export function TranscriptWorkspace({
         <Button type="button" size="sm" variant="outline" onClick={onDownloadTxt}>
           {t("transcript.download")}
         </Button>
-        {jobId && segments.length === 0 ? (
+        {jobId && hasAudio && segments.length === 0 ? (
           <Button
             type="button"
             size="sm"
@@ -263,40 +265,41 @@ export function TranscriptWorkspace({
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="transcript-search">{t("transcript.searchLabel")}</Label>
-          <Input
-            id="transcript-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("transcript.searchPlaceholder")}
-            autoComplete="off"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>{t("transcript.textVersion")}</Label>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={transcriptView === "original" ? "default" : "outline"}
-              onClick={() => setTranscriptView("original")}
-              disabled={segments.length === 0}
-            >
-              {t("transcript.showOriginal")}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={transcriptView === "normalized" ? "default" : "outline"}
-              onClick={() => setTranscriptView("normalized")}
-            >
-              {t("transcript.showNormalized")}
-            </Button>
+      {segments.length > 0 ? (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="transcript-search">{t("transcript.searchLabel")}</Label>
+            <Input
+              id="transcript-search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("transcript.searchPlaceholder")}
+              autoComplete="off"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("transcript.textVersion")}</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={transcriptView === "original" ? "default" : "outline"}
+                onClick={() => setTranscriptView("original")}
+              >
+                {t("transcript.showOriginal")}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={transcriptView === "normalized" ? "default" : "outline"}
+                onClick={() => setTranscriptView("normalized")}
+              >
+                {t("transcript.showNormalized")}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {segments.length > 0 ? (
         <div className="space-y-2">

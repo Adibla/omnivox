@@ -713,6 +713,7 @@ export function ResultsWorkspace({
                   result={visibleResult}
                   csrfToken={csrfToken}
                   csrfReady={csrfReady}
+                  hasAudio={pipelineJob ? Boolean(pipelineJob.objectKey) : true}
                   onToast={flashCopied}
                 />
               ) : (

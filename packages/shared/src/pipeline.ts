@@ -12,7 +12,7 @@ export const PipelineStageSchema = z.enum([
 export const PipelineMessageSchema = z.object({
   jobId: z.string().uuid(),
   meetingId: z.string().min(3),
-  objectKey: z.string().min(1),
+  objectKey: z.string().min(1).optional().nullable(),
   transcriptText: z.string().min(40).optional().nullable(),
   transcript: z.string().optional(),
   transcriptSegments: z.array(TranscriptSegmentSchema).optional(),

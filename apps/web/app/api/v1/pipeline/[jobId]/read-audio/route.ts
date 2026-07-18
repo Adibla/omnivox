@@ -46,6 +46,13 @@ export async function POST(request: Request, context: RouteContext) {
         message: "Access denied for this object.",
       });
     }
+    if (!job.objectKey) {
+      return fail(request, {
+        status: 404,
+        code: "not_found",
+        message: "This analysis has no source audio.",
+      });
+    }
     const url = await createPresignedReadUrl(job.objectKey);
     return ok(request, { url, expiresInSeconds: 300 });
   } catch (error) {

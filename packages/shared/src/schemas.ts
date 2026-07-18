@@ -120,15 +120,25 @@ export const AnalysisOutputSchema = z.object({
 export const MeetingTemplateSchema = z.enum(["generic", "standup", "board", "client", "retro"]);
 export const OutputLanguageSchema = z.enum(["auto", "it", "en"]);
 
-export const PipelineStartRequestSchema = z.object({
-  meetingId: z.string().min(3).max(96),
-  displayTitle: z.string().trim().min(3).max(160).optional(),
-  objectKey: z.string().min(1),
-  languageHint: z.string().min(2).max(8).default("it"),
-  transcriptText: z.string().min(40).optional(),
-  meetingTemplate: MeetingTemplateSchema.default("generic"),
-  outputLanguage: OutputLanguageSchema.default("auto"),
-});
+export const PipelineStartRequestSchema = z
+  .object({
+    meetingId: z.string().min(3).max(96),
+    displayTitle: z.string().trim().min(3).max(160).optional(),
+    objectKey: z.string().min(1).optional(),
+    languageHint: z.string().min(2).max(8).default("it"),
+    transcriptText: z.string().min(40).max(500_000).optional(),
+    meetingTemplate: MeetingTemplateSchema.default("generic"),
+    outputLanguage: OutputLanguageSchema.default("auto"),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.objectKey && !value.transcriptText) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["objectKey"],
+        message: "Provide either an uploaded audio object or a transcript.",
+      });
+    }
+  });
 
 export const TranslateReportRequestSchema = z.object({
   targetLanguage: OutputLanguageSchema.exclude(["auto"]),

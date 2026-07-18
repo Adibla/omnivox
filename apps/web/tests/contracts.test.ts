@@ -54,6 +54,23 @@ describe("contract schemas", () => {
     expect(value.outputLanguage).toBe("auto");
   });
 
+  it("accepts a transcript-only start with no object key", () => {
+    const value = PipelineStartRequestSchema.parse({
+      meetingId: "meeting_001",
+      transcriptText: "a".repeat(40),
+    });
+    expect(value.objectKey).toBeUndefined();
+    expect(value.transcriptText).toHaveLength(40);
+  });
+
+  it("rejects a start with neither object key nor transcript", () => {
+    expect(() =>
+      PipelineStartRequestSchema.parse({
+        meetingId: "meeting_001",
+      }),
+    ).toThrowError();
+  });
+
   it("enforces analysis output shape", () => {
     expect(() =>
       AnalysisOutputSchema.parse({

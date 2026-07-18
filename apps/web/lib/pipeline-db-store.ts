@@ -8,7 +8,7 @@ export type DbPipelineJob = {
   idempotencyKey: string;
   meetingId: string;
   displayTitle?: string | null;
-  objectKey: string;
+  objectKey: string | null;
   state: PipelineState | "running" | "retrying" | "dead_letter";
   attempt: number;
   error?: string | null;
@@ -36,7 +36,7 @@ export async function createJob(input: {
   idempotencyKey: string;
   meetingId: string;
   displayTitle?: string | null;
-  objectKey: string;
+  objectKey?: string | null;
   state: DbPipelineJob["state"];
   tokenEstimate?: number;
   tenantId?: string | null;
@@ -53,7 +53,7 @@ export async function createJob(input: {
       input.idempotencyKey,
       input.meetingId,
       input.displayTitle ?? null,
-      input.objectKey,
+      input.objectKey ?? null,
       input.state,
       input.tokenEstimate ?? null,
       input.tenantId ?? null,
@@ -187,7 +187,7 @@ function rowToJob(row: Record<string, unknown>): DbPipelineJob {
     idempotencyKey: String(row.idempotency_key),
     meetingId: String(row.meeting_id),
     displayTitle: (row.display_title as string | null) ?? null,
-    objectKey: String(row.object_key),
+    objectKey: (row.object_key as string | null) ?? null,
     state: String(row.state) as DbPipelineJob["state"],
     attempt: Number(row.attempt ?? 0),
     error: (row.error as string | null) ?? null,

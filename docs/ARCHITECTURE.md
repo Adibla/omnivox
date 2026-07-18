@@ -265,13 +265,13 @@ Web and worker must use the same bucket.
 
 ## Idempotency
 
-`POST /api/v1/pipeline/start` uses this logical key:
+`POST /api/v1/pipeline/start` accepts either an uploaded `objectKey` or a pasted `transcriptText`, and uses this logical key:
 
 ```text
-ownerSubject + ":" + meetingId + ":" + objectKey
+ownerSubject + ":" + meetingId + ":" + (objectKey | sha256(transcriptText))
 ```
 
-If the same user starts the same analysis on the same object again, the API returns the existing job instead of duplicating work.
+Audio jobs dedupe on the stored object; transcript-only jobs dedupe on a hash of the text, so re-submitting the same input returns the existing job instead of duplicating work, while an edited transcript starts a new one.
 
 ## Known Limits
 
