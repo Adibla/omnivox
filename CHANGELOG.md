@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-19
+
 ### Added
 
 - Transcript-only analyses: start a report from a pasted transcript with no audio upload, plus a one-click sample on the new-analysis form.
 - Retry failed analyses from the report: a re-enqueue endpoint replays the original start options (stored on the job), so audio and transcript-only jobs can both be retried after a failure.
+
+### Changed
+
+- Upgraded core dependencies, including Next.js 16 and Zod 4.
 
 ### Fixed
 
