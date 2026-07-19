@@ -30,8 +30,8 @@ export async function GET(request: Request) {
       status:
         job.state === "completed" ? "completed" : job.state === "failed" ? "failed" : "in_progress",
       updatedAt: job.updatedAt,
-      actionCount: job.result?.actions.length,
-      diagramCount: job.result?.artifacts.length,
+      actionCount: job.actionCount,
+      diagramCount: job.diagramCount,
     })),
   });
 }
