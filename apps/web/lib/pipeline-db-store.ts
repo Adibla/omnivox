@@ -102,22 +102,32 @@ export async function getJobByIdempotency(idempotencyKey: string): Promise<DbPip
   return rows.length === 0 ? null : hydrateJob(rowToJob(rows[0]));
 }
 
+export type JobListItem = DbPipelineJob & { actionCount: number; diagramCount: number };
+
+// Counts via subqueries in one query instead of hydrating each job's result (avoids an N+1).
 export async function listJobsByOwner(input: {
   tenantId: string;
   ownerIssuer: string;
   ownerSubject: string;
   limit?: number;
-}) {
+}): Promise<JobListItem[]> {
   await initializeDatabase();
   const db = getDbPool();
   const { rows } = await db.query(
-    `${jobSelectSql()}
+    `select ${JOB_COLUMNS},
+       (select count(*) from pipeline_actions a where a.job_id = pipeline_jobs.id) as action_count,
+       (select count(*) from pipeline_artifacts ar where ar.job_id = pipeline_jobs.id) as diagram_count
+     from pipeline_jobs
      where tenant_id = $1 and owner_issuer = $2 and owner_subject = $3 and deleted_at is null
      order by updated_at desc
      limit $4`,
     [input.tenantId, input.ownerIssuer, input.ownerSubject, input.limit ?? 50],
   );
-  return Promise.all(rows.map((row) => hydrateJob(rowToJob(row))));
+  return rows.map((row) => ({
+    ...rowToJob(row),
+    actionCount: Number(row.action_count ?? 0),
+    diagramCount: Number(row.diagram_count ?? 0),
+  }));
 }
 
 export async function softDeleteJob(jobId: string) {
@@ -194,9 +204,10 @@ export async function writeAuditEvent(input: {
   );
 }
 
+const JOB_COLUMNS = `id, external_id, idempotency_key, meeting_id, display_title, object_key, state, attempt, error, token_estimate, tenant_id, owner_issuer, owner_subject, created_at, updated_at`;
+
 function jobSelectSql() {
-  return `select id, external_id, idempotency_key, meeting_id, display_title, object_key, state, attempt, error, token_estimate, tenant_id, owner_issuer, owner_subject, created_at, updated_at
-          from pipeline_jobs`;
+  return `select ${JOB_COLUMNS} from pipeline_jobs`;
 }
 
 function rowToJob(row: Record<string, unknown>): DbPipelineJob {
