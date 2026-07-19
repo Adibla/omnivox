@@ -1,6 +1,6 @@
 {
   "name": "@omnivox/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "OmniVox web app: Next.js UI and versioned /api/v1 routes",
   "license": "Apache-2.0",
@@ -17,9 +17,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.825.0",
     "@aws-sdk/s3-request-presigner": "^3.825.0",
-    "@omnivox/security": "0.1.0",
-    "@omnivox/shared": "0.1.0",
-    "@omnivox/wasm-audio": "0.1.0",
+    "@omnivox/security": "0.2.0",
+    "@omnivox/shared": "0.2.0",
+    "@omnivox/wasm-audio": "0.2.0",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-separator": "^1.1.8",

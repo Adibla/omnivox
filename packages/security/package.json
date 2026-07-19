@@ -1,6 +1,6 @@
 {
   "name": "@omnivox/security",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Helpers for storage keys and S3 headers used by the OmniVox apps",
   "license": "Apache-2.0",
