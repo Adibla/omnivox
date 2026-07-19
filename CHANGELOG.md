@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Recent analyses list no longer hydrates each job's full result to count actions and diagrams; it uses a single aggregated query, removing an N+1 that grew with the number of analyses.
+- The audio-language hint on the new-analysis form now defaults to the UI language instead of always Italian.
 
 ## [0.1.0] - 2026-07-12
 

@@ -154,7 +154,7 @@ export function NewAnalysisPanel({
   const [file, setFile] = useState<File | null>(null);
   const [meetingTemplate, setMeetingTemplate] = useState<MeetingTemplate>("generic");
   const [outputLanguage, setOutputLanguage] = useState<OutputLanguage>("auto");
-  const [languageHint, setLanguageHint] = useState("it");
+  const [languageHint, setLanguageHint] = useState(locale === "en" ? "en" : "it");
   const [transcriptText, setTranscriptText] = useState("");
   const [uploadPhase, setUploadPhase] = useState<ClientUploadPhase>("idle");
   const [error, setError] = useState("");

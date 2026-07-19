@@ -12,6 +12,11 @@ This is a working list of improvements for future releases. It is not a commitme
 - Clear backup and restore policy for Postgres, Redis, and object storage.
 - Better separation of OpenAI/API keys between web and worker if separate budgets or permissions are needed.
 
+## Performance
+
+- Report and recent-list polling refetch the full result payload on every tick; move to lightweight status polling (or server push) and fetch the full result only when it changes.
+- The worker persists actions and artifacts with one insert per row; batch them into a single multi-row insert per job to cut database round-trips.
+
 ## Product
 
 - Global search across transcripts, actions, decisions, and diagrams.
