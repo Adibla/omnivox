@@ -15,11 +15,11 @@
     "worker:run": "tsx src/main.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.825.0",
-    "@aws-sdk/s3-request-presigner": "^3.825.0",
+    "@aws-sdk/client-s3": "^3.1095.0",
+    "@aws-sdk/s3-request-presigner": "^3.1095.0",
     "@omnivox/security": "0.2.0",
     "@omnivox/shared": "0.2.0",
-    "bullmq": "^5.58.5",
+    "bullmq": "^5.81.2",
     "ioredis": "^5.8.0",
     "openai": "^4.104.0",
     "pg": "^8.16.3",
