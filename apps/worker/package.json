@@ -15,20 +15,20 @@
     "worker:run": "tsx src/main.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.825.0",
-    "@aws-sdk/s3-request-presigner": "^3.825.0",
+    "@aws-sdk/client-s3": "^3.1124.0",
+    "@aws-sdk/s3-request-presigner": "^3.1124.0",
     "@omnivox/security": "0.2.0",
     "@omnivox/shared": "0.2.0",
     "bullmq": "^5.58.5",
     "ioredis": "^5.8.0",
     "openai": "^4.104.0",
-    "pg": "^8.16.3",
-    "tsx": "^4.20.3",
-    "zod": "^4.4.3"
+    "pg": "^8.23.0",
+    "tsx": "^4.23.13",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
-    "@types/pg": "^8.20.0",
+    "@types/node": "^26.4.1",
+    "@types/pg": "^8.23.1",
     "typescript": "^5.8.3"
   }
 }
